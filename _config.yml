@@ -16,7 +16,7 @@ timezone: Asia/Seoul
 
 title: he's tory # the main title
 
-tagline: 공부하자 # it will display as the sub-title
+tagline: 성장을 기록합니다. # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
   he's tory | Frontend, Backend, AI
