@@ -11,13 +11,13 @@ description: NestJS에 Winston 로깅 모듈을 도입하여 효과적으로 로
 ![2023-01-14-image1](2023-01-14-image1.png)
 _Winston 로깅 시스템_
 
-웹 API 서버를 운영할 때 중요한 것 중 하나가 바로 로그를 쌓는 것입니다. NestJS에 Node.js의 대표적인 로그 모듈 중 하나인 [winston](https://www.npmjs.com/package/winston)을 도입해 로그를 남기는 방법을 알려드리고자 합니다.
+웹 API 서버를 운영할 때 중요한 게 로그를 쌓는 거예요. NestJS에 Node.js의 대표적인 로그 모듈인 [winston](https://www.npmjs.com/package/winston)을 도입해 로그를 남기는 방법을 알아봅시다.
 
 ---
 
 ## Middleware
 
-미들웨어는 라우터 핸들러(컨트롤러) 전에 호출되는 함수입니다. Request - Response 사이클 중에 request, response 객체에 접근할 수 있고, next 미들웨어 기능에 접근할 수 있습니다.
+미들웨어는 라우터 핸들러(컨트롤러) 전에 호출되는 함수예요. Request - Response 사이클 중에 request, response 객체에 접근할 수 있고, next 미들웨어 기능에 접근할 수 있습니다.
 
 ![2023-01-14-image2](2023-01-14-image2.png)
 _NestJS 미들웨어 실행 흐름_
@@ -111,7 +111,7 @@ export class LoggerService implements LS {
 }
 ```
 
-transports를 보면 level을 여러 개로 나눠놨는데 이건 log 레벨에 따라 log 파일을 다르게 생성하기 위함입니다.
+transports를 보면 level을 여러 개로 나눠놨는데, log 레벨에 따라 파일을 다르게 생성하기 위해서예요.
 
 ### Logger Middleware
 
@@ -159,11 +159,11 @@ export class AppModule implements NestModule {
 }
 ```
 
-AppModule에 NestModule을 implements 합니다. LoggerMiddleware를 원하는 라우트 핸들러(Controller)에 연결하면 끝입니다.
+AppModule에 NestModule을 implements 합니다. LoggerMiddleware를 원하는 컨트롤러에 연결하면 끝이에요.
 
 ### 결과 확인
 
 ![2023-01-14-image3](2023-01-14-image3.png)
 _생성된 로그 파일들_
 
-로그 파일은 날짜별로 자동 생성되며, 최대 크기(maxsize)에 도달하면 새로운 파일이 생성됩니다.
+로그 파일은 날짜별로 자동 생성되고, 최대 크기에 도달하면 새 파일이 만들어져요.

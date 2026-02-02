@@ -11,7 +11,7 @@ description: Apache Kafka를 설치하고 NestJS 프로젝트에 연동하는 �
 ![2023-05-20-image1](2023-05-20-image1.jpg)
 _Apache Kafka_
 
-Kafka 설치부터 NestJS 연동까지의 전체 과정을 다룹니다. Kafka의 기본 개념이 궁금하다면 [카프카(kafka)란?](/posts/kafka가-뭐야) 글을 먼저 참고하세요.
+Kafka 설치부터 NestJS 연동까지 전체 과정을 정리했어요. Kafka의 기본 개념이 궁금하다면 [카프카(kafka)란?](/posts/kafka가-뭐야) 글을 먼저 읽어보세요.
 
 ---
 
@@ -31,7 +31,7 @@ cd kafka_2.13-2.8.0
 bin/zookeeper-server-start.sh -daemon config/zookeeper.properties
 ```
 
-Zookeeper는 분산 애플리케이션의 코디네이션 서비스로, Kafka 클러스터의 메타데이터 관리를 담당합니다.
+Zookeeper는 분산 애플리케이션의 코디네이션 서비스로 Kafka 클러스터의 메타데이터를 관리해요.
 
 ![2023-05-20-image3](2023-05-20-image3.png)
 _Zookeeper 아키텍처 구조_
@@ -181,4 +181,4 @@ export class AppService {
 ![2023-05-20-gif2](2023-05-20-gif2.gif)
 _NestJS Consumer 테스트 결과_
 
-더 자세한 내용은 [Kafka 공식 문서](https://kafka.apache.org/documentation)를 참고하세요.
+자세한 내용은 [Kafka 공식 문서](https://kafka.apache.org/documentation)를 확인해 보세요.

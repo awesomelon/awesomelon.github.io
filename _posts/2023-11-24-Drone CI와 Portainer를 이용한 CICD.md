@@ -15,7 +15,7 @@ description: Drone CI로 이미지를 빌드하고 Portainer로 자동 배포하
 
 ## Portainer란?
 
-[Portainer](https://www.portainer.io)는 Kubernetes, Docker, Swarm 등을 쉽게 배포하고 관리할 수 있는 경량화된 관리 도구입니다. 웹 UI를 제공하며, 실행 중인 컨테이너, 이미지, 볼륨 등을 직관적으로 확인하고 관리할 수 있습니다.
+[Portainer](https://www.portainer.io)는 Kubernetes, Docker, Swarm 등을 쉽게 배포하고 관리할 수 있는 경량화된 관리 도구예요. 웹 UI를 제공하며, 실행 중인 컨테이너, 이미지, 볼륨 등을 직관적으로 확인하고 관리할 수 있습니다.
 
 Portainer는 Server와 Agent 두 가지 요소로 구성됩니다. 클러스터 내의 각 노드에 Agent를 설치하고, Server는 여러 Agent의 연결을 수용하여 하나의 중앙화된 인터페이스에서 여러 클러스터를 관리할 수 있습니다.
 
@@ -26,7 +26,7 @@ _Portainer 아키텍처 구조_
 
 ## Portainer 설치
 
-Docker Compose로 Server와 Agent를 컨테이너로 띄웁니다.
+Docker Compose로 Server와 Agent를 컨테이너로 띄워요.
 
 ```yaml
 version: '3.2'
@@ -51,7 +51,7 @@ volumes:
   portainer_data:
 ```
 
-컨테이너를 시작한 후 브라우저로 접속하면 현재 Portainer Server와 연동된 클러스터들을 볼 수 있습니다.
+컨테이너를 시작한 후 브라우저로 접속하면 현재 Portainer Server와 연동된 클러스터들을 볼 수 있어요.
 
 ![2023-11-24-image2](2023-11-24-image2.png)
 _Portainer 환경 목록_
@@ -65,12 +65,12 @@ _Docker 환경 대시보드_
 
 Stack이란 다중 컨테이너 애플리케이션의 묶음입니다. docker-compose로 컨테이너를 여러 개 띄웠을 시 그 여러 개를 합쳐서 하나의 Stack이라고 부릅니다.
 
-Add Stack 버튼을 클릭하고 Stack 정보를 입력합니다.
+Add Stack 버튼을 클릭하고 Stack 정보를 입력해요.
 
 ![2023-11-24-image5](2023-11-24-image5.png)
 _Stack 생성 화면_
 
-**주요 설정:**
+**주요 설정**
 - **Build Method**: Web editor, Upload, Git Repository 중 선택 (GitOps를 위해 Git Repository 권장)
 - **Repository URL**: 변경된 사항이 있는지 감지할 저장소 주소
 - **username, personal access token**: 저장소 인증 정보
@@ -108,7 +108,7 @@ _Portainer 자동 배포 실행_
 5. Portainer Webhook 호출
 6. Portainer가 새 이미지로 컨테이너 재배포
 
-**Webhook 호출 예시:**
+**Webhook 호출 예시**
 
 ```yaml
 - name: deploy

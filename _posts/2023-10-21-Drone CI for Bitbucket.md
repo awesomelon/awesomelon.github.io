@@ -8,7 +8,7 @@ img_path: /assets/img/for_post/
 description: Docker 기반의 경량 CI 플랫폼인 Drone CI를 Bitbucket과 연동하여 파이프라인을 구성하는 방법을 알아봅니다.
 ---
 
-Drone CI는 Docker를 기반으로 Harness에서 개발한 오픈 소스 CI 플랫폼입니다. 모든 구성 요소는 Docker 컨테이너로 되어 있으며 파이프라인 단계 실행도 Docker 컨테이너로 수행됩니다. Go lang으로 작성되어 매우 가볍고 설정 파일도 간단한 YAML 파일로 구성할 수 있습니다.
+Drone CI는 Docker를 기반으로 Harness에서 개발한 오픈 소스 CI 플랫폼입니다. 모든 구성 요소는 Docker 컨테이너로 되어 있으며 파이프라인 단계 실행도 Docker 컨테이너로 수행돼요. Go lang으로 작성되어 매우 가볍고 설정 파일도 간단한 YAML 파일로 구성할 수 있습니다.
 
 ---
 
@@ -22,7 +22,7 @@ Drone CI는 Docker를 기반으로 Harness에서 개발한 오픈 소스 CI 플�
 
 ## Bitbucket 연동 설정
 
-연동을 위해 Bitbucket OAuth Key와 Secret이 필요합니다.
+연동을 위해 Bitbucket OAuth Key와 Secret이 필요해요.
 
 ### BitBucket Workspace Settings 접속
 
@@ -31,7 +31,7 @@ _Bitbucket Workspace Settings_
 
 ### OAuth Consumer 생성
 
-OAuth Consumer → Add Consumer 클릭 후 정보를 입력합니다.
+OAuth Consumer → Add Consumer 클릭 후 정보를 입력해요.
 
 ![2023-10-21-image2](2023-10-21-image2.png)
 _OAuth Consumer 설정_
@@ -46,7 +46,7 @@ _생성된 OAuth Key와 Secret_
 
 ## Drone CI 설치
 
-docker-compose.yml:
+docker-compose.yml
 
 ```yaml
 version: '3.1'
@@ -130,7 +130,7 @@ steps:
       - echo "Hello World2"
 ```
 
-코드를 푸시하면 파이프라인이 실행됩니다.
+코드를 푸시하면 파이프라인이 실행돼요.
 
 ![2023-10-21-image9](2023-10-21-image9.png)
 _파이프라인 실행 목록_

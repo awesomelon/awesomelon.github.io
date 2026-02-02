@@ -8,7 +8,7 @@ img_path: /assets/img/for_post/
 description: Terraform을 사용하여 AWS 인프라를 코드로 관리하고, EC2부터 Load Balancer, Route53까지 자동화하는 방법을 알아봅니다.
 ---
 
-IaC(Infrastructure as Code)는 수동으로 인프라를 구축하는 것이 아닌 코드를 통해 인프라를 생성하고 관리하는 방법입니다. 버전 관리, 재사용, 공유할 수 있는 리소스 구성을 정의하여 안전하고 일관되게 인프라를 구축, 변경, 관리할 수 있습니다.
+IaC(Infrastructure as Code)는 수동으로 인프라를 구축하는 것이 아닌 코드를 통해 인프라를 생성하고 관리하는 방법이에요. 버전 관리, 재사용, 공유할 수 있는 리소스 구성을 정의하여 안전하고 일관되게 인프라를 구축, 변경, 관리할 수 있습니다.
 
 그중 가장 많이 쓰는 도구로 HashiCorp에서 개발중인 Terraform이 있습니다. AWS, GCP, Azure와 같은 주요 클라우드 서비스를 프로바이더 방식으로 제공하고 있어 멀티 클라우드 리소스를 선언하고 관리하는 것도 가능합니다.
 
@@ -28,7 +28,7 @@ brew install terraform
 terraform version
 ```
 
-여러 버전을 사용하는 경우 tfenv를 권장합니다.
+여러 버전을 사용하는 경우 tfenv를 권장해요.
 
 ```bash
 brew install tfenv
@@ -49,7 +49,7 @@ mkdir aws_infra && cd aws_infra
 touch provider.tf
 ```
 
-AWS 접근 키는 환경변수로 등록 후 사용하는 것을 권장합니다.
+AWS 접근 키는 환경변수로 등록 후 사용하는 것을 권장해요.
 
 ```bash
 export AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY"
@@ -63,7 +63,7 @@ provider.tf에는 간단히 아래와 같이 작성합니다.
 provider "aws" {}
 ```
 
-Terraform을 초기화합니다.
+Terraform을 초기화해요.
 
 ```bash
 terraform init
@@ -101,7 +101,7 @@ terraform plan
 ![2023-11-26-image3](2023-11-26-image3.png)
 _Terraform Plan 결과_
 
-적용합니다.
+적용해요.
 
 ```bash
 terraform apply
@@ -162,7 +162,7 @@ variable "key_name" {
 }
 ```
 
-main.tf에 Target Group 리소스를 추가합니다.
+main.tf에 Target Group 리소스를 추가해요.
 
 ```hcl
 resource "aws_lb_target_group" "target_group_client" {
@@ -255,7 +255,7 @@ terraform destroy   # 리소스 삭제
 
 ## 모범 사례
 
-**State 관리:**
+**State 관리**
 
 ```hcl
 terraform {
@@ -267,7 +267,7 @@ terraform {
 }
 ```
 
-**주의사항:**
+**주의사항**
 - Access Key를 코드에 하드코딩하지 말 것
 - State 파일에는 민감 정보가 포함되므로 S3 + 암호화 사용
 - `terraform plan`으로 항상 사전 확인
