@@ -124,6 +124,6 @@ _Portainer 자동 배포 실행_
 
 ## 정리
 
-Portainer의 장점은 직관적인 웹 UI, GitOps 기반 자동 배포 지원, 무료 Webhook 배포, 여러 클러스터 중앙 관리입니다. 단점은 Polling 자동 배포가 유료 기능이고, 복잡한 배포 전략(Blue-Green, Canary)은 제한적입니다.
+Portainer는 웹 UI가 직관적이고 Webhook으로 무료 자동 배포가 가능해서 좋았어요. 다만 Polling 자동 배포는 유료이고, Blue-Green이나 Canary 같은 배포 전략은 지원이 제한적입니다.
 
-경험상 Jenkins보다 Drone CI가 파이프라인 파일을 명확하게 작성할 수 있어서 좋았습니다. 더 고급 기능이 필요하다면 ArgoCD, Flux, Rancher 등을 고려해볼 수 있습니다.
+개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었어요. 더 고급 기능이 필요하면 ArgoCD나 Flux 같은 도구도 있습니다.

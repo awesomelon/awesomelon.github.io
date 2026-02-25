@@ -11,7 +11,7 @@ description: NestJS에 Winston 로깅 모듈을 도입하여 효과적으로 로
 ![2023-01-14-image1](2023-01-14-image1.png)
 _Winston 로깅 시스템_
 
-웹 API 서버를 운영할 때 중요한 게 로그를 쌓는 거예요. NestJS에 Node.js의 대표적인 로그 모듈인 [winston](https://www.npmjs.com/package/winston)을 도입해 로그를 남기는 방법을 알아봅시다.
+웹 API 서버를 운영하면 로그를 쌓는 게 정말 중요해요. NestJS에 Node.js의 대표적인 로그 모듈인 [winston](https://www.npmjs.com/package/winston)을 도입해서 로그를 남기는 방법을 정리해봤습니다.
 
 ---
 

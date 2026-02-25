@@ -253,7 +253,7 @@ terraform destroy   # 리소스 삭제
 
 ---
 
-## 모범 사례
+## 운영 팁
 
 **State 관리**
 
@@ -267,10 +267,6 @@ terraform {
 }
 ```
 
-**주의사항**
-- Access Key를 코드에 하드코딩하지 말 것
-- State 파일에는 민감 정보가 포함되므로 S3 + 암호화 사용
-- `terraform plan`으로 항상 사전 확인
-- Remote State 사용 시 State Locking 설정 (DynamoDB)
+Access Key는 절대 코드에 하드코딩하지 마세요. State 파일에 민감 정보가 들어가기 때문에 S3에 저장할 때 암호화를 켜두는 게 좋습니다. `terraform plan`으로 항상 먼저 확인하고, Remote State를 쓸 때는 DynamoDB로 State Locking도 설정해두세요.
 
 전체 코드는 [GitHub 저장소](https://github.com/awesomelon/simple-aws-terraform)를 확인해주세요.

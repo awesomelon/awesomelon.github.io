@@ -5,7 +5,7 @@ categories: [ENGINEERING, BACKEND, Kafka]
 tags: [kafka, message queue, pub/sub, nestjs, installation]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Apache Kafka를 설치하고 NestJS 프로젝트에 연동하는 전체 과정을 단계별로 알아봅니다.
+description: Kafka 설치부터 NestJS 연동까지 전체 과정 정리
 ---
 
 ![2023-05-20-image1](2023-05-20-image1.jpg)

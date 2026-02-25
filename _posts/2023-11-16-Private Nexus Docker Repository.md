@@ -142,12 +142,6 @@ _Nexus에 업로드된 이미지 확인_
 6. Insecure-registries 설정
 7. Docker login 및 이미지 push/pull 테스트
 
-**운영 시 고려사항**
-- Production 환경에서는 SSL/TLS 인증서 필수
-- 사용자 권한 관리 (Role-based Access Control)
-- 정기적인 백업 (/nexus-data)
-- Blob Store 용량 모니터링
-- Cleanup Policies 설정 (오래된 이미지 자동 삭제)
+실제 운영할 때는 SSL/TLS 인증서 적용, 사용자 권한 관리, `/nexus-data` 백업, Blob Store 용량 모니터링 정도는 챙겨야 합니다. Cleanup Policies로 오래된 이미지를 자동 삭제하는 설정도 해두면 좋아요.
 
-**활용:**
-CI/CD 파이프라인에서 Jenkins/Drone으로 이미지를 빌드하고, Nexus Private Registry에 Push한 뒤, Kubernetes/Docker에서 이미지를 Pull하여 배포를 자동화할 수 있습니다.
+이렇게 구축한 Private Registry는 CI/CD 파이프라인에서 Jenkins나 Drone으로 빌드한 이미지를 Push하고, 배포 시 Pull하는 용도로 사용할 수 있습니다.

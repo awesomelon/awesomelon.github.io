@@ -97,4 +97,4 @@ export class UserController {
 }
 ```
 
-커스텀 Exception Filter를 통해 애플리케이션의 에러 응답 형식을 일관되게 관리할 수 있습니다.
+이렇게 커스텀 Exception Filter를 만들면 에러 응답 형식을 원하는 대로 통일할 수 있어요.

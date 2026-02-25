@@ -4,7 +4,7 @@ date: 2023-07-08 22:00:00 +0900
 categories: [ENGINEERING, DEVOPS, ArgoCD]
 tags: [argocd, kubernetes, ingress, troubleshooting, tls]
 author: j-ho
-description: ArgoCD 서버 설정 시 발생하는 무한 리다이렉션 문제(err_too_many_redirects)의 원인과 해결 방법을 알아봅니다.
+description: ArgoCD에서 err_too_many_redirects가 발생했을 때 해결 방법
 ---
 
 ArgoCD 서버를 세팅하고 HTTPS를 연결하여 브라우저에서 접속하려니 `err_too_many_redirects` 이슈가 발생했어요.
