@@ -6,7 +6,7 @@ tags: [ai, git, claude ai, cli, commit message, 자동화]
 author: j-ho
 img_path: /assets/img/for_post/
 pin: false
-description: Claude AI를 활용하여 Git 커밋 메시지를 자동으로 생성해주는 CLI 도구 commit-ai를 소개합니다.
+description: Claude AI로 Git 커밋 메시지를 생성하는 CLI 도구 commit-ai를 소개합니다.
 ---
 
 `commit-ai`는 AI로 Git 커밋 메시지를 자동 생성해주는 CLI 도구입니다. 커밋 메시지 고민하는 시간을 줄여줘요.

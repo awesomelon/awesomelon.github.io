@@ -5,7 +5,7 @@ categories: [ENGINEERING, DEVOPS, Docker]
 tags: [nexus, docker, repository, registry, private registry]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Nexus를 활용하여 사내에서 사용할 수 있는 Docker Private Repository를 구축하고 설정하는 전체 과정을 알아봅니다.
+description: Nexus로 사내 Docker Private Repository를 구축하고 설정한 과정을 정리합니다.
 ---
 
 애플리케이션을 Docker를 이용해 배포하다보면 Docker Build 후 생성된 Docker Image를 관리할 수 있는 Repository가 필요해요. Nexus를 이용한 사내 Docker Private Repository를 구축해보겠습니다.
@@ -101,7 +101,7 @@ vi /etc/docker/daemon.json
 }
 ```
 
-> Production 환경에서는 반드시 SSL/TLS 인증서를 설정하여 사용하는 것을 권장합니다.
+> Production 환경에서는 SSL/TLS 인증서를 설정해 사용하는 게 좋습니다.
 {: .prompt-warning }
 
 Docker를 재시작해요.

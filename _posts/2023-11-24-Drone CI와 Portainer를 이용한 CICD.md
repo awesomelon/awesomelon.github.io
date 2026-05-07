@@ -5,7 +5,7 @@ categories: [ENGINEERING, DEVOPS, CI/CD]
 tags: [portainer, drone, ci/cd, docker, docker swarm, gitops]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Drone CI로 이미지를 빌드하고 Portainer로 자동 배포하는 GitOps 기반 CI/CD 파이프라인을 구축하는 방법을 알아봅니다.
+description: Drone CI로 이미지를 빌드하고 Portainer로 배포하는 GitOps 방식 CI/CD 파이프라인을 정리합니다.
 ---
 
 > [Drone CI](/posts/Drone-CI-for-Bitbucket/) 글과 연결되니 한번 읽어보시는 것을 추천합니다.

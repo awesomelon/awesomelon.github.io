@@ -5,7 +5,7 @@ categories: [ENGINEERING, CI/CD]
 tags: [drone, ci/cd, bitbucket, docker, pipeline]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Docker 기반의 경량 CI 플랫폼인 Drone CI를 Bitbucket과 연동하여 파이프라인을 구성하는 방법을 알아봅니다.
+description: Docker 기반 CI 플랫폼 Drone CI를 Bitbucket과 연동해 파이프라인을 구성한 과정을 정리합니다.
 ---
 
 Drone CI는 Docker를 기반으로 Harness에서 개발한 오픈 소스 CI 플랫폼입니다. 모든 구성 요소는 Docker 컨테이너로 되어 있으며 파이프라인 단계 실행도 Docker 컨테이너로 수행돼요. Go lang으로 작성되어 매우 가볍고 설정 파일도 간단한 YAML 파일로 구성할 수 있습니다.

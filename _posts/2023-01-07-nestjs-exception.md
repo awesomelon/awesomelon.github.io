@@ -5,7 +5,7 @@ categories: [ENGINEERING, BACKEND, NestJS]
 tags: [nestjs, error handling, error, exception]
 author: j-ho
 img_path: /assets/img/for_post/
-description: NestJS에 내장된 예외 처리 레이어와 커스텀 Exception Filter를 활용하는 방법을 알아봅니다.
+description: NestJS 내장 예외 처리 레이어와 커스텀 Exception Filter 사용법을 정리합니다.
 ---
 
 ![2023-01-07-image1](2023-01-07-image1.png)

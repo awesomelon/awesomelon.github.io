@@ -7,7 +7,7 @@ math: true
 author: j-ho
 img_path: /assets/img/for_post/
 pin: false
-description: 애플이 공개한 Complete(d) Parameterisation 기술을 분석합니다.
+description: 애플 논문 Complete(d) Parameterisation의 아이디어와 실험 결과를 정리합니다.
 ---
 
 > 이 글은 arXiv 논문 "Completed Hyperparameter Transfer across Modules, Width, Depth, Batch and Duration"([arXiv:2512.22382](https://www.arxiv.org/abs/2512.22382))를 토대로 작성되었습니다.
@@ -24,7 +24,7 @@ description: 애플이 공개한 Complete(d) Parameterisation 기술을 분석�
 
 ## 1. 실험 결과: 작게 찾아서 크게 적용한다
 
-먼저 논문이 보고한 핵심 실험 결과입니다. 저자들은 50M 파라미터의 작은 모델에서 최적의 하이퍼파라미터를 찾은 뒤, 이를 7.2B 모델에 그대로 적용했습니다.
+논문에서 가장 먼저 볼 만한 결과입니다. 저자들은 50M 파라미터 모델에서 최적의 하이퍼파라미터를 찾은 뒤, 이를 7.2B 모델에 그대로 적용했습니다.
 
 ![Figure 1](2026-01-03-image1.jpg)
 
@@ -39,7 +39,7 @@ description: 애플이 공개한 Complete(d) Parameterisation 기술을 분석�
 
 ## 2. 핵심 아이디어: 배치 크기/학습 기간이 변해도 학습 동역학 유지
 
-모델 크기를 키울 때 μP(Maximal Update Parametrization)를 사용해 파라미터를 조정하는 것은 이미 알려진 사실입니다. 이 논문은 여기서 더 나아가 배치 크기와 학습 기간이 변할 때도 학습의 안정성을 유지하는 Complete(d) Parameterisation을 제안하죠.
+모델 크기를 키울 때 μP(Maximal Update Parametrization)로 파라미터를 조정하는 방법은 이미 알려져 있습니다. 이 논문은 거기서 한 발 더 나아가, 배치 크기와 학습 기간이 바뀌어도 학습이 비슷하게 흘러가도록 Complete(d) Parameterisation을 제안합니다.
 
 저자들은 학습 과정을 연속적인 시간의 흐름, 즉 확률 미분 방정식(SDE) 관점에서 해석하며, 배치 크기/학습 기간 변화에도 학습 동역학을 보존하기 위한 스케일 규칙을 도출합니다.
 
@@ -49,7 +49,7 @@ SGD나 AdamW 같은 옵티마이저는 연속적인 확률 과정을 이산적(D
 
 ### 2.2. Square Root Rule
 
-연구진은 수식 유도를 통해, 배치 크기를 $\kappa$배 키울 때 학습률($\eta$)과 가중치 감쇠($\lambda$)를 $\sqrt{\kappa}$배 키워야 한다는 제곱근 비례 규칙을 도출했습니다.
+연구진은 배치 크기를 $\kappa$배 키울 때 학습률($\eta$)과 가중치 감쇠($\lambda$)를 $\sqrt{\kappa}$배 키워야 한다는 제곱근 비례 규칙을 제시했습니다.
 
 $$
 \eta' = \sqrt{\kappa}\eta, \quad \lambda' = \sqrt{\kappa}\lambda
@@ -79,7 +79,7 @@ $$
 
 작은 모델에서 찾아낸 모듈별 설정값들은 Complete(d)P 규칙에 따라 7.2B 모델로 변환되었고, 대규모 모델에서도 성능 우위가 유지되는 것으로 보고되었습니다.
 
-## 4. 결론
+## 4. 정리
 
 논문의 메시지는 간단합니다. 작은 모델에서 하이퍼파라미터를 찾고, 파라미터화 규칙으로 큰 모델에 전이하면 반복 튜닝 비용을 줄이면서 안정적인 학습을 유지할 수 있습니다.
 

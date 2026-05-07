@@ -5,7 +5,7 @@ categories: [ENGINEERING, BACKEND, NestJS]
 tags: [nestjs, logging, winston]
 author: j-ho
 img_path: /assets/img/for_post/
-description: NestJS에 Winston 로깅 모듈을 도입하여 효과적으로 로그를 관리하는 방법을 알아봅니다.
+description: NestJS에 Winston 로깅 모듈을 붙이고 로그를 관리하는 과정을 정리합니다.
 ---
 
 ![2023-01-14-image1](2023-01-14-image1.png)

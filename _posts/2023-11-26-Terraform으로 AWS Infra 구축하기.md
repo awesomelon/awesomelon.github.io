@@ -5,10 +5,10 @@ categories: [ENGINEERING, DEVOPS, IaC]
 tags: [terraform, iac, aws, infrastructure, automation]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Terraform을 사용하여 AWS 인프라를 코드로 관리하고, EC2부터 Load Balancer, Route53까지 자동화하는 방법을 알아봅니다.
+description: Terraform으로 AWS 인프라를 코드로 관리하고 EC2, Load Balancer, Route53을 구성한 과정을 정리합니다.
 ---
 
-IaC(Infrastructure as Code)는 수동으로 인프라를 구축하는 것이 아닌 코드를 통해 인프라를 생성하고 관리하는 방법이에요. 버전 관리, 재사용, 공유할 수 있는 리소스 구성을 정의하여 안전하고 일관되게 인프라를 구축, 변경, 관리할 수 있습니다.
+IaC(Infrastructure as Code)는 콘솔에서 수동으로 인프라를 만드는 대신 코드로 인프라를 생성하고 관리하는 방식이에요. 리소스 구성을 버전 관리할 수 있고, 같은 구성을 다시 쓰거나 공유하기도 쉽습니다.
 
 그중 가장 많이 쓰는 도구로 HashiCorp에서 개발중인 Terraform이 있습니다. AWS, GCP, Azure와 같은 주요 클라우드 서비스를 프로바이더 방식으로 제공하고 있어 멀티 클라우드 리소스를 선언하고 관리하는 것도 가능합니다.
 

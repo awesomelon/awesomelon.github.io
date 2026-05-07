@@ -6,7 +6,7 @@ tags: [vlm, chain-of-thought, computer vision, multimodal, visual reasoning, cov
 author: j-ho
 img_path: /assets/img/for_post/
 pin: false
-description: Vision-Language Model이 시각적으로 사고하도록 만드는 CoVT 프레임워크를 분석합니다.
+description: VLM이 텍스트뿐 아니라 시각 토큰으로 추론하게 만드는 CoVT 프레임워크를 정리합니다.
 ---
 
 > 이 글은 UC Berkeley와 UCLA 연구진이 발표한 논문 "Chain-of-Visual-Thought: Teaching VLMs to See and Think Better with Continuous Visual Tokens"를 토대로 작성되었습니다.
@@ -21,7 +21,7 @@ Chain-of-Thought(CoT)는 LLM의 추론 능력을 개선한 기법입니다. 복�
 ![CoVT 프레임워크](2025-12-01-image1.jpg)
 _Chain-of-Visual-Thought 프레임워크 개요_
 
-이 논문은 텍스트뿐만 아니라 연속적인 시각 토큰(Continuous Visual Tokens)을 활용해 모델이 시각적으로 사고하게 만드는 CoVT 프레임워크를 제안합니다.
+이 논문은 텍스트와 함께 연속적인 시각 토큰(Continuous Visual Tokens)을 쓰는 CoVT 프레임워크를 제안합니다. 모델이 이미지 정보를 텍스트로만 우회하지 않고, 시각 표현 자체를 추론에 쓰게 하려는 접근입니다.
 
 ---
 
@@ -37,7 +37,7 @@ CoVT는 추론 과정에서 텍스트 토큰과 함께 시각 정보를 담은 �
 
 ## 2. 핵심 원리: 연속적 시각 토큰
 
-CoVT의 핵심은 추론 과정에서 생성되는 토큰이 단순한 텍스트가 아닌 압축된 시각적 잠재 표현이라는 점입니다.
+CoVT에서 중요한 점은 추론 중에 생성되는 토큰이 텍스트만이 아니라 압축된 시각 잠재 표현이라는 것입니다.
 
 연구진은 인간의 시각 인지 과정을 모방해 4가지 시각 능력을 정의했습니다:
 
@@ -98,13 +98,13 @@ CoVT는 학습 단계에서 외부 전문가 모델의 능력을 VLM 파라미�
 
 CoVT는 VLM이 텍스트만으로 추론하던 한계를 넘어, 이미지의 물리적/공간적 특성을 직접 시뮬레이션하며 추론할 수 있게 만든 프레임워크입니다.
 
-핵심 기여는 다음과 같습니다.
+논문에서 강조한 기여는 다음과 같습니다.
 - 연속적 시각 토큰으로 텍스트 병목 제거
 - 4가지 시각 능력을 단일 VLM에 내재화
 - 해석 가능한 추론 과정
 - 추론 시 외부 모델 불필요
 
-연속적인 시각 토큰을 사고 도구로 내재화한 접근은 멀티모달 AI 연구에서 주목할 만합니다.
+텍스트로 설명하기 어려운 시각 정보를 토큰으로 직접 다루려는 시도라는 점에서 볼 만한 논문입니다.
 
 ---
 

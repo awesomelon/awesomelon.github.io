@@ -6,7 +6,7 @@ tags: [breadcrumbs, navigation, ux, web design, ui pattern, 내비게이션]
 author: j-ho
 img_path: /assets/img/for_post/
 pin: false
-description: 브레드크럼의 효용성에 대한 회의론과 옹호론을 살펴보고, 현대 웹에서의 적절한 사용 방법을 탐구합니다.
+description: 브레드크럼이 여전히 필요한지, 어떤 상황에서 쓰면 좋은지 정리합니다.
 ---
 
 브레드크럼(Breadcrumbs)은 사용자의 현재 위치를 알려주고 상위 경로로 돌아갈 수 있게 해주는 UI 패턴입니다. 직관적이라 오래전부터 널리 쓰여 왔죠.
