@@ -4,10 +4,19 @@ body.orchid {
   margin: 0;
   background: #fff;
   color: #333;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-family:
+    'Pretendard',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Apple SD Gothic Neo',
+    'Noto Sans KR',
+    'Malgun Gothic',
+    system-ui,
+    sans-serif;
   font-size: 1.05rem;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .orchid-wrap {
@@ -15,6 +24,7 @@ body.orchid {
   max-width: 42rem;
   margin: 0 auto;
   padding: 3rem 1.5rem 4rem;
+  font-family: inherit;
 }
 
 .orchid-nav {
@@ -86,8 +96,18 @@ body.orchid {
   color: inherit;
   text-decoration: none;
 
-  &:hover .orchid-post-title {
-    color: #000;
+  &:hover,
+  &:focus-visible {
+    .orchid-post-title {
+      color: #000;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    .orchid-post-date {
+      color: #666;
+    }
   }
 }
 
@@ -96,14 +116,21 @@ body.orchid {
   margin-bottom: 0.2rem;
   font-size: 1.05rem;
   font-weight: 400;
-  color: #15171a;
+  color: #444;
   line-height: 1.45;
+  text-decoration: underline transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
 }
 
 .orchid-post-date {
   display: block;
   font-size: 0.9rem;
   color: #999;
+  transition: color 0.15s ease;
 }
 
 .orchid-article-title,
@@ -123,6 +150,7 @@ body.orchid {
 }
 
 .orchid-content {
+  font-family: inherit;
   color: #333;
 
   /* 상단 참고 URL(prompt-info): Chirpy 콜아웃 대신 날짜 아래 메타 텍스트 톤 */
