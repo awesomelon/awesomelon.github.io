@@ -1,6 +1,8 @@
 {% include origin-type.html %}
 
-{% assign urls = site.data.origin[type].glightbox.js
+{% assign urls = site.data.origin[type]['lazy-polyfill'].js
+  | append: ','
+  | append: site.data.origin[type].glightbox.js
   | append: ','
   | append: site.data.origin[type].clipboard.js
 %}
