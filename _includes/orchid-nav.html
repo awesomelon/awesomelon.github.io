@@ -1,0 +1,17 @@
+{% assign nav = site.data.orchid.nav %}
+{% assign current = page.url %}
+
+<nav class="orchid-nav" aria-label="Main navigation">
+  <a
+    href="{{ nav.main.url | relative_url }}"
+    class="orchid-nav-link{% if current == '/' or current == '/index.html' %} is-active{% endif %}"
+  >{{ nav.main.label }}</a>
+  <a
+    href="{{ nav.essays.url | relative_url }}"
+    class="orchid-nav-link{% if current == nav.essays.url %} is-active{% endif %}"
+  >{{ nav.essays.label }}</a>
+  <a
+    href="{{ nav.contact.url | relative_url }}"
+    class="orchid-nav-link{% if current == nav.contact.url %} is-active{% endif %}"
+  >{{ nav.contact.label }}</a>
+</nav>

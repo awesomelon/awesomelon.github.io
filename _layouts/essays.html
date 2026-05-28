@@ -1,0 +1,7 @@
+---
+layout: orchid
+---
+
+{% assign visible_posts = site.posts | where_exp: 'item', 'item.hidden != true' %}
+
+{% include orchid-post-list.html posts=visible_posts %}

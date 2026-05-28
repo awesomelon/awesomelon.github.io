@@ -1,0 +1,21 @@
+{% comment %}
+  Usage: {% include orchid-post-list.html posts=site.posts limit=4 %}
+{% endcomment %}
+
+{% assign listed_posts = include.posts | where_exp: 'item', 'item.hidden != true' %}
+{% if include.limit %}
+  {% assign listed_posts = listed_posts | slice: 0, include.limit %}
+{% endif %}
+
+<ul class="orchid-post-list">
+  {% for post in listed_posts %}
+    <li class="orchid-post-item">
+      <a href="{{ post.url | relative_url }}" class="orchid-post-link">
+        <span class="orchid-post-title">{{ post.title }}</span>
+        <time class="orchid-post-date" datetime="{{ post.date | date_to_xmlschema }}">
+          {% include orchid-date.html date=post.date format='month' %}
+        </time>
+      </a>
+    </li>
+  {% endfor %}
+</ul>

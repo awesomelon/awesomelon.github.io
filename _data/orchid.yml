@@ -1,0 +1,35 @@
+# Orchid 스타일 홈/연락처 설정 (about.lines는 직접 수정하세요)
+
+nav:
+  main:
+    label: Main
+    url: /
+  essays:
+    label: Essays
+    url: /essays/
+  contact:
+    label: Contact
+    url: /contact/
+
+about:
+  lines:
+    - 소프트웨어 엔지니어 방재호입니다.
+    - 스타트업에서 웹 서비스를 개발·배포·운영했습니다.
+    - 성장과 학습을 기록합니다.
+
+home:
+  preview_count: 6
+  section_title: 최근 글
+  more_label: "... 더 보기"
+
+contact:
+  intro: 궁금한 점이나 협업 제안이 있으시면 연락 주세요.
+  channels:
+    - label: Email
+      text: bangjh1114@gmail.com
+      url: "mailto:bangjh1114@gmail.com"
+  follow:
+    - label: GitHub
+      url: https://github.com/awesomelon
+    - label: Blog
+      url: https://j-ho.io

@@ -1,0 +1,27 @@
+---
+layout: compress
+---
+
+<!doctype html>
+
+{% include lang.html %}
+
+<html lang="{{ site.lang | default: 'ko' }}" data-mode="light">
+  {% include orchid-head.html %}
+
+  <body class="orchid">
+    <div class="orchid-wrap">
+      {% include orchid-nav.html %}
+
+      <main class="orchid-main" aria-label="Main Content">
+        {{ content }}
+      </main>
+
+      {% include orchid-footer.html %}
+    </div>
+
+    {% if page.layout == 'post' %}
+      {% include orchid-post-scripts.html %}
+    {% endif %}
+  </body>
+</html>

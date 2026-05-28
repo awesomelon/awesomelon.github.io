@@ -1,0 +1,27 @@
+---
+layout: orchid
+---
+
+{% assign contact = site.data.orchid.contact %}
+
+<section class="orchid-section">
+  <h2 class="orchid-heading">Contact</h2>
+  {% for channel in contact.channels %}
+    <p class="orchid-line">
+      {{ channel.label }}:
+      <a href="{{ channel.url }}">{{ channel.text }}</a>
+    </p>
+  {% endfor %}
+  {% if contact.intro %}
+    <p class="orchid-muted">{{ contact.intro }}</p>
+  {% endif %}
+</section>
+
+<section class="orchid-section">
+  <h2 class="orchid-heading">Follow</h2>
+  {% for link in contact.follow %}
+    <p class="orchid-line">
+      <a href="{{ link.url }}"{% unless link.url contains site.url %} target="_blank" rel="noopener noreferrer"{% endunless %}>{{ link.label }}</a>
+    </p>
+  {% endfor %}
+</section>

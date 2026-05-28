@@ -1,0 +1,15 @@
+---
+layout: orchid
+---
+
+{% include lang.html %}
+
+<article class="orchid-page">
+  {% unless page.hide_title %}
+    <h1 class="orchid-page-title">{{ page.title }}</h1>
+  {% endunless %}
+
+  <div class="orchid-content content">
+    {{ content }}
+  </div>
+</article>

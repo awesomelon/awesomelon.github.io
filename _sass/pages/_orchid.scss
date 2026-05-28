@@ -1,0 +1,285 @@
+/* Orchid-style minimal layout overrides */
+
+body.orchid {
+  margin: 0;
+  background: #fff;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.orchid-wrap {
+  box-sizing: border-box;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.orchid-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 4rem;
+  font-size: 0.95rem;
+}
+
+.orchid-nav-link {
+  color: #999;
+  text-decoration: none;
+
+  &:hover,
+  &.is-active {
+    color: #333;
+  }
+}
+
+.orchid-section {
+  margin-bottom: 3.5rem;
+}
+
+.orchid-heading {
+  margin: 0 0 1.25rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #15171a;
+}
+
+.orchid-line {
+  margin: 0 0 0.35rem;
+  color: #333;
+}
+
+.orchid-muted {
+  margin: 0.75rem 0 0;
+  color: #999;
+  font-size: 0.95rem;
+}
+
+.orchid-more {
+  margin: 1.25rem 0 0;
+
+  a {
+    color: #999;
+    text-decoration: none;
+
+    &:hover {
+      color: #333;
+    }
+  }
+}
+
+.orchid-post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.orchid-post-item {
+  margin-bottom: 1.75rem;
+}
+
+.orchid-post-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .orchid-post-title {
+    color: #000;
+  }
+}
+
+.orchid-post-title {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: #15171a;
+  line-height: 1.45;
+}
+
+.orchid-post-date {
+  display: block;
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.orchid-article-title,
+.orchid-page-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #15171a;
+}
+
+.orchid-article-date {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: #999;
+  font-size: 0.95rem;
+}
+
+.orchid-content {
+  color: #333;
+
+  /* 상단 참고 URL(prompt-info): Chirpy 콜아웃 대신 날짜 아래 메타 텍스트 톤 */
+  > blockquote.prompt-info:first-child {
+    margin: 0 0 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #999;
+    font-size: 0.92rem;
+    line-height: 1.55;
+
+    &::before {
+      display: none;
+    }
+
+    p {
+      margin: 0 0 0.4rem;
+      color: inherit;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      li {
+        margin: 0.2rem 0;
+      }
+
+      a {
+        color: #777;
+        text-decoration: none;
+
+        &:hover {
+          color: #333;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  > blockquote.prompt-info:first-child + hr {
+    display: none;
+  }
+
+  /* 본문 중간 콜아웃은 살짝만 유지 */
+  blockquote[class^='prompt-']:not(.prompt-info) {
+    margin: 1.25rem 0;
+    padding: 0.85rem 1rem 0.85rem 2.35rem;
+    font-size: 0.98rem;
+    border-radius: 4px;
+
+    &::before {
+      left: 0.5rem;
+      width: 1.5rem;
+      margin-top: 0.15rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  h2,
+  h3,
+  h4 {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: #15171a;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+  }
+
+  a {
+    color: #333;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  pre,
+  .highlight {
+    margin: 1.25rem 0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+}
+
+.orchid-footer {
+  margin-top: 4rem;
+  padding-top: 0;
+  border: 0;
+}
+
+.orchid-footer-copy {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ccc;
+  text-align: center;
+
+  a {
+    color: #ccc;
+    text-decoration: none;
+
+    &:hover {
+      color: #999;
+    }
+  }
+}
+
+/* Legacy archive/category pages: keep readable inside orchid shell */
+body.orchid #archives,
+body.orchid .card.categories,
+body.orchid #page-tag,
+body.orchid #page-category {
+  .orchid-wrap & {
+    padding: 0;
+  }
+}
+
+body.orchid #archives {
+  padding-left: 0 !important;
+
+  .year {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #15171a;
+    margin-top: 2rem;
+  }
+
+  li {
+    margin: 0.5rem 0;
+  }
+
+  a {
+    color: #333;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .orchid-wrap {
+    padding-top: 2rem;
+  }
+
+  .orchid-nav {
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+}

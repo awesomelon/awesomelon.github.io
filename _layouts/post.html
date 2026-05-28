@@ -1,0 +1,18 @@
+---
+layout: orchid
+---
+
+{% include lang.html %}
+
+<article class="orchid-article">
+  <header class="orchid-article-header">
+    <h1 class="orchid-article-title">{{ page.title }}</h1>
+    <time class="orchid-article-date" datetime="{{ page.date | date_to_xmlschema }}">
+      {% include orchid-date.html date=page.date format='full' %}
+    </time>
+  </header>
+
+  <div class="orchid-content content">
+    {{ content }}
+  </div>
+</article>

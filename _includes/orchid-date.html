@@ -1,0 +1,4 @@
+{%- assign y = include.date | date: '%Y' -%}
+{%- assign m = include.date | date: '%-m' -%}
+{%- assign d = include.date | date: '%-d' -%}
+{%- if include.format == 'month' -%}{{ y }}년 {{ m }}월{%- else -%}{{ y }}년 {{ m }}월 {{ d }}일{%- endif -%}

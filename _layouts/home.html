@@ -1,0 +1,23 @@
+---
+layout: orchid
+---
+
+{% assign preview_count = site.data.orchid.home.preview_count | default: 6 %}
+{% assign visible_posts = site.posts | where_exp: 'item', 'item.hidden != true' %}
+
+<section class="orchid-section">
+  <h2 class="orchid-heading">About</h2>
+  {% for line in site.data.orchid.about.lines %}
+    <p class="orchid-line">{{ line }}</p>
+  {% endfor %}
+</section>
+
+<section class="orchid-section">
+  <h2 class="orchid-heading">{{ site.data.orchid.home.section_title | default: '최근 글' }}</h2>
+
+  {% include orchid-post-list.html posts=visible_posts limit=preview_count %}
+
+  <p class="orchid-more">
+    <a href="{{ site.data.orchid.nav.essays.url | relative_url }}">{{ site.data.orchid.home.more_label }}</a>
+  </p>
+</section>
