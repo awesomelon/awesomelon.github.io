@@ -23,13 +23,12 @@ home:
   more_label: "... 더 보기"
 
 contact:
-  intro: 궁금한 점이나 협업 제안이 있으시면 연락 주세요.
   channels:
     - label: Email
       text: bangjh1114@gmail.com
       url: "mailto:bangjh1114@gmail.com"
   follow:
-    - label: GitHub
+    - label: https://github.com/awesomelon
       url: https://github.com/awesomelon
-    - label: Blog
+    - label: https://j-ho.io
       url: https://j-ho.io
