@@ -15,9 +15,9 @@ description: Drone CI로 이미지를 빌드하고 Portainer로 배포하는 Git
 
 ## Portainer란?
 
-[Portainer](https://www.portainer.io)는 Kubernetes, Docker, Swarm 등을 쉽게 배포하고 관리할 수 있는 경량화된 관리 도구예요. 웹 UI를 제공하며, 실행 중인 컨테이너, 이미지, 볼륨 등을 직관적으로 확인하고 관리할 수 있습니다.
+[Portainer](https://www.portainer.io)는 Kubernetes, Docker, Swarm 등을 쉽게 배포하고 관리할 수 있는 경량화된 관리 도구예요. 웹 UI를 제공하며 실행 중인 컨테이너, 이미지, 볼륨 등을 직관적으로 확인하고 관리할 수 있습니다.
 
-Portainer는 Server와 Agent 두 가지 요소로 구성됩니다. 클러스터 내의 각 노드에 Agent를 설치하고, Server는 여러 Agent의 연결을 수용하여 하나의 중앙화된 인터페이스에서 여러 클러스터를 관리할 수 있습니다.
+Portainer는 Server와 Agent 두 가지 요소로 구성됩니다. 클러스터 내의 각 노드에 Agent를 설치하고 Server는 여러 Agent의 연결을 수용하여 하나의 중앙화된 인터페이스에서 여러 클러스터를 관리할 수 있습니다.
 
 ![2023-11-24-image1](2023-11-24-image1.png)
 _Portainer 아키텍처 구조_
@@ -92,7 +92,7 @@ Drone CI에서 Docker 빌드가 완료된 후 Portainer Server의 Webhook으로 
 ![2023-11-24-image7](2023-11-24-image7.png)
 _Drone CI 파이프라인 실행_
 
-요청을 받은 Portainer Server는 해당 Stack에서 변경된 이미지가 있는 컨테이너를 확인하여 컨테이너를 새로 띄웁니다.
+요청을 받은 Portainer Server는 해당 Stack에서 변경된 이미지가 있는 컨테이너를 확인하여 새로 띄웁니다.
 
 ![2023-11-24-image8](2023-11-24-image8.png)
 _Portainer 자동 배포 실행_
@@ -124,6 +124,6 @@ _Portainer 자동 배포 실행_
 
 ## 정리
 
-Portainer는 웹 UI가 직관적이고 Webhook으로 무료 자동 배포가 가능해서 좋았어요. 다만 Polling 자동 배포는 유료이고, Blue-Green이나 Canary 같은 배포 전략은 지원이 제한적입니다.
+Portainer는 웹 UI가 직관적이고 Webhook으로 무료 자동 배포가 가능해서 좋았어요. 다만 Polling 자동 배포는 유료이고 Blue-Green이나 Canary 같은 배포 전략은 지원이 제한적입니다.
 
 개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었어요. 더 고급 기능이 필요하면 ArgoCD나 Flux 같은 도구도 있습니다.

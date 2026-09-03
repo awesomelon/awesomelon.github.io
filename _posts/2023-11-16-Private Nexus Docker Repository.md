@@ -144,4 +144,4 @@ _Nexus에 업로드된 이미지 확인_
 
 실제 운영할 때는 SSL/TLS 인증서 적용, 사용자 권한 관리, `/nexus-data` 백업, Blob Store 용량 모니터링 정도는 챙겨야 합니다. Cleanup Policies로 오래된 이미지를 자동 삭제하는 설정도 해두면 좋아요.
 
-이렇게 구축한 Private Registry는 CI/CD 파이프라인에서 Jenkins나 Drone으로 빌드한 이미지를 Push하고, 배포 시 Pull하는 용도로 사용할 수 있습니다.
+이렇게 구축한 Private Registry는 CI/CD 파이프라인에서 Jenkins나 Drone으로 빌드한 이미지를 Push하고 배포 시 Pull하는 용도로 사용할 수 있습니다.

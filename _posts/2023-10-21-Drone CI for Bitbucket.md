@@ -14,7 +14,7 @@ Drone CI는 Docker를 기반으로 Harness에서 개발한 오픈 소스 CI 플�
 
 ## Drone 아키텍처
 
-**Drone Server**는 저장소에서 변경 사항을 모니터링하고, 구성 파일(`.drone.yml`)에 따라 Drone Runner에 task를 추가합니다.
+**Drone Server**는 저장소에서 변경 사항을 모니터링하고 구성 파일(`.drone.yml`)에 따라 Drone Runner에 task를 추가합니다.
 
 **Drone Runner**는 Drone Server에서 task들을 polling하고 지정된 pipeline을 실행합니다.
 

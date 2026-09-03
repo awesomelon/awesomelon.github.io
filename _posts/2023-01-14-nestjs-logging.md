@@ -17,7 +17,7 @@ _Winston 로깅 시스템_
 
 ## Middleware
 
-미들웨어는 라우터 핸들러(컨트롤러) 전에 호출되는 함수예요. Request - Response 사이클 중에 request, response 객체에 접근할 수 있고, next 미들웨어 기능에 접근할 수 있습니다.
+미들웨어는 라우터 핸들러(컨트롤러) 전에 호출되는 함수예요. Request - Response 사이클 중에 request, response 객체에 접근할 수 있고 next 미들웨어 기능에 접근할 수 있습니다.
 
 ![2023-01-14-image2](2023-01-14-image2.png)
 _NestJS 미들웨어 실행 흐름_
@@ -166,4 +166,4 @@ AppModule에 NestModule을 implements 합니다. LoggerMiddleware를 원하는 �
 ![2023-01-14-image3](2023-01-14-image3.png)
 _생성된 로그 파일들_
 
-로그 파일은 날짜별로 자동 생성되고, 최대 크기에 도달하면 새 파일이 만들어져요.
+로그 파일은 날짜별로 자동 생성되고 최대 크기에 도달하면 새 파일이 만들어져요.

@@ -8,7 +8,7 @@ img_path: /assets/img/for_post/
 description: Terraform으로 AWS 인프라를 코드로 관리하고 EC2, Load Balancer, Route53을 구성한 과정을 정리합니다.
 ---
 
-IaC(Infrastructure as Code)는 콘솔에서 수동으로 인프라를 만드는 대신 코드로 인프라를 생성하고 관리하는 방식이에요. 리소스 구성을 버전 관리할 수 있고, 같은 구성을 다시 쓰거나 공유하기도 쉽습니다.
+IaC(Infrastructure as Code)는 콘솔에서 수동으로 인프라를 만드는 대신 코드로 인프라를 생성하고 관리하는 방식이에요. 리소스 구성을 버전 관리할 수 있고 같은 구성을 다시 쓰거나 공유하기도 쉽습니다.
 
 그중 가장 많이 쓰는 도구로 HashiCorp에서 개발중인 Terraform이 있습니다. AWS, GCP, Azure와 같은 주요 클라우드 서비스를 프로바이더 방식으로 제공하고 있어 멀티 클라우드 리소스를 선언하고 관리하는 것도 가능합니다.
 
@@ -267,6 +267,6 @@ terraform {
 }
 ```
 
-Access Key는 절대 코드에 하드코딩하지 마세요. State 파일에 민감 정보가 들어가기 때문에 S3에 저장할 때 암호화를 켜두는 게 좋습니다. `terraform plan`으로 항상 먼저 확인하고, Remote State를 쓸 때는 DynamoDB로 State Locking도 설정해두세요.
+Access Key는 절대 코드에 하드코딩하지 마세요. State 파일에 민감 정보가 들어가기 때문에 S3에 저장할 때 암호화를 켜두는 게 좋습니다. `terraform plan`으로 항상 먼저 확인하고 Remote State를 쓸 때는 DynamoDB로 State Locking도 설정해두세요.
 
 전체 코드는 [GitHub 저장소](https://github.com/awesomelon/simple-aws-terraform)를 확인해주세요.
