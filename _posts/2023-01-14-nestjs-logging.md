@@ -24,7 +24,7 @@ _NestJS 미들웨어 실행 흐름_
 
 NestJS의 Middleware는 기본적으로 [express](https://expressjs.com/en/guide/using-middleware.html)의 Middleware와 동일합니다.
 
-미들웨어에서 `next()`를 호출하지 않으면 Request는 계속 응답 대기 상태가 됩니다.
+미들웨어에서 응답을 끝내지도 않고 `next()`도 호출하지 않으면 Request는 계속 응답 대기 상태가 됩니다.
 
 ---
 
@@ -35,6 +35,7 @@ NestJS의 Middleware는 기본적으로 [express](https://expressjs.com/en/guide
 ```bash
 npm i winston
 npm i nest-winston
+npm i moment
 ```
 
 ### Logger Service
@@ -42,7 +43,7 @@ npm i nest-winston
 ```typescript
 import { LoggerService as LS } from '@nestjs/common';
 import * as winston from 'winston';
-import * as moment from 'moment';
+import moment = require('moment');
 import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 
 const { errors, combine, timestamp, printf } = winston.format;
@@ -62,7 +63,7 @@ export class LoggerService implements LS {
             errors({ stack: true }),
             timestamp({ format: 'isoDateTime' }),
             printf((info) => {
-              return `${info.message}`;
+              return `${info.timestamp} ${info.level}: ${info.message}${info.stack ? '\n' + info.stack : ''}`;
             }),
           ),
         }),
@@ -82,7 +83,7 @@ export class LoggerService implements LS {
           format: combine(
             timestamp({ format: 'isoDateTime' }),
             printf((info) => {
-              return `${info.message}`;
+              return `${info.timestamp} ${info.level}: ${info.message}${info.stack ? '\n' + info.stack : ''}`;
             }),
           ),
         }),
@@ -96,11 +97,11 @@ export class LoggerService implements LS {
   info(message: string) {
     this.logger.info(message);
   }
-  error(message: string, trace: string) {
-    this.logger.error(message, trace);
+  error(message: string, trace?: string) {
+    this.logger.error(message, { stack: trace });
   }
   warn(message: string) {
-    this.logger.warning(message);
+    this.logger.warn(message);
   }
   debug(message: string) {
     this.logger.debug(message);
@@ -111,43 +112,29 @@ export class LoggerService implements LS {
 }
 ```
 
-transports를 보면 level을 여러 개로 나눠놨는데, log 레벨에 따라 파일을 다르게 생성하기 위해서예요.
+transport별 `level`은 기록할 중요도의 기준입니다. `error` 파일에는 오류만, 기본 `info` 레벨인 application 파일에는 info와 그보다 중요한 warn, error가 함께 기록됩니다. 기본 로그 레벨에서 경고 메서드 이름은 `warning()`이 아니라 `warn()`입니다.
 
 ### Logger Middleware
 
 ```typescript
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { LoggerService } from './logger.service';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
-  constructor() {}
-  use(req: Request, res: Response, next: Function) {
-    const loggerService = new LoggerService(
-      req.url.slice(1).split('/')[req.url.slice(1).split('/').length - 1],
-    );
-    const tempUrl = req.method + ' ' + req.url.split('?')[0];
-    const _headers = req.headers ? req.headers : {};
-    const _query = req.query ? req.query : {};
-    const _body = req.body ? req.body : {};
-    const _url = tempUrl ? tempUrl : {};
+  private readonly loggerService = new LoggerService('HTTP');
 
-    loggerService.info(
-      JSON.stringify({
-        url: _url,
-        headers: _headers,
-        query: _query,
-        body: _body,
-      }),
-    );
+  use(req: Request, res: Response, next: NextFunction) {
+    const tempUrl = req.method + ' ' + req.url.split('?')[0];
+    this.loggerService.info(JSON.stringify({ url: tempUrl }));
 
     next();
   }
 }
 ```
 
-header, query, body 등등을 log 파일로 남깁니다.
+요청 메서드와 경로를 로그 파일로 남깁니다. 요청마다 로거와 파일 transport를 새로 만들지 않고 재사용합니다. header, query, body 전체를 기록하면 토큰이나 비밀번호도 남을 수 있으니, 추가 데이터는 필요한 필드만 선택하고 민감한 값은 마스킹해야 합니다.
 
 ### AppModule
 
@@ -166,4 +153,6 @@ AppModule에 NestModule을 implements 합니다. LoggerMiddleware를 원하는 �
 ![2023-01-14-image3](2023-01-14-image3.png)
 _생성된 로그 파일들_
 
-로그 파일은 날짜별로 자동 생성되고 최대 크기에 도달하면 새 파일이 만들어져요.
+위 예제의 날짜는 로거를 생성할 때 파일명에 고정됩니다. `maxsize`에 따른 파일 분할은 되지만, 프로세스를 계속 실행한 채 날짜가 바뀐다고 파일명이 자동으로 바뀌지는 않아요. 날짜별 회전이 필요하다면 별도의 회전 transport를 설정해야 합니다.
+
+참고: [Winston 로그 레벨과 transport 설정](https://github.com/winstonjs/winston), [Express 미들웨어](https://expressjs.com/en/guide/using-middleware.html)

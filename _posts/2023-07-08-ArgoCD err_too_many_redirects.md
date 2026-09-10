@@ -13,10 +13,10 @@ ArgoCD 서버를 세팅하고 HTTPS를 연결하여 브라우저에서 접속하
 
 ## 원인
 
-- Ingress Controller는 TLS를 자체적으로 종료하고 HTTP를 통해 백엔드 서비스와 통신
-- argocd-server는 자체적으로 TLS를 종료하고 항상 HTTP 요청을 HTTPS로 리다이렉션
+- 당시 구성에서는 Ingress Controller가 TLS 연결을 종료하고 HTTP로 백엔드 서비스와 통신
+- 기본 TLS 설정의 argocd-server는 전달받은 HTTP 요청을 HTTPS로 리다이렉션
 
-둘이 결합하면서 ArgoCD 서버가 HTTPS로 무한 리다이렉션됩니다.
+브라우저가 리다이렉션된 HTTPS 주소로 다시 요청해도 Ingress가 HTTP로 전달하므로 같은 리다이렉션이 반복됩니다.
 
 ```
 사용자 (HTTPS) → Ingress Controller (TLS 종료) → ArgoCD Server (HTTP → HTTPS 리다이렉트) → 무한 루프
@@ -26,7 +26,7 @@ ArgoCD 서버를 세팅하고 HTTPS를 연결하여 브라우저에서 접속하
 
 ## 해결 방법
 
-argocd-server deployment 시 `--insecure` 플래그를 추가합니다.
+Ingress에서 TLS를 종료하고 백엔드에 HTTP로 전달하는 구성을 유지한다면, 기존 argocd-server Deployment의 컨테이너 실행 명령에 `--insecure` 플래그를 추가합니다. 아래는 해당 부분만 발췌한 예시예요.
 
 ```yaml
 containers:
@@ -47,3 +47,4 @@ containers:
 
 - [GitHub Issue: err_too_many_redirects](https://github.com/argoproj/argo-cd/issues/2953)
 - [ArgoCD 공식 문서: Ingress 설정](https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/)
+- [ArgoCD 2.7 문서: Ingress 설정](https://argo-cd.readthedocs.io/en/release-2.7/operator-manual/ingress/)

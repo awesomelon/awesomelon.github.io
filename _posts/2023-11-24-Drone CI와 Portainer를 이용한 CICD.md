@@ -17,7 +17,7 @@ description: Drone CI로 이미지를 빌드하고 Portainer로 배포하는 Git
 
 [Portainer](https://www.portainer.io)는 Kubernetes, Docker, Swarm 등을 쉽게 배포하고 관리할 수 있는 경량화된 관리 도구예요. 웹 UI를 제공하며 실행 중인 컨테이너, 이미지, 볼륨 등을 직관적으로 확인하고 관리할 수 있습니다.
 
-Portainer는 Server와 Agent 두 가지 요소로 구성됩니다. 클러스터 내의 각 노드에 Agent를 설치하고 Server는 여러 Agent의 연결을 수용하여 하나의 중앙화된 인터페이스에서 여러 클러스터를 관리할 수 있습니다.
+Portainer는 Server와 Agent를 이용해 여러 환경을 중앙에서 관리할 수 있습니다. Docker Swarm에서는 각 노드에 Agent를 배치하는 구성을 사용할 수 있고, 단일 Docker 환경에서는 로컬 소켓으로 직접 연결하는 방식도 가능합니다.
 
 ![2023-11-24-image1](2023-11-24-image1.png)
 _Portainer 아키텍처 구조_
@@ -26,7 +26,7 @@ _Portainer 아키텍처 구조_
 
 ## Portainer 설치
 
-Docker Compose로 Server와 Agent를 컨테이너로 띄워요.
+아래 예시는 단일 Docker 호스트에서 Compose로 Server와 Agent를 띄우는 구성입니다. Swarm 클러스터를 관리하려면 Agent의 전역 배포와 overlay 네트워크 등 Swarm용 구성이 별도로 필요해요.
 
 ```yaml
 version: '3.2'
@@ -40,7 +40,7 @@ services:
 
   portainer:
     image: portainer/portainer-ce:latest
-    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    command: -H tcp://agent:9001 --tlsskipverify
     ports:
       - '0.0.0.0:9443:9443'
       - '0.0.0.0:9000:9000'
@@ -63,7 +63,7 @@ _Docker 환경 대시보드_
 
 ## Stack 생성 및 GitOps 설정
 
-Stack이란 다중 컨테이너 애플리케이션의 묶음입니다. docker-compose로 컨테이너를 여러 개 띄웠을 시 그 여러 개를 합쳐서 하나의 Stack이라고 부릅니다.
+Portainer에서 Stack은 Compose 파일 등으로 함께 정의하고 배포하는 서비스의 묶음입니다. 단순히 실행 중인 컨테이너 여러 개를 모두 하나의 Stack이라고 부르는 것은 아니에요.
 
 Add Stack 버튼을 클릭하고 Stack 정보를 입력해요.
 
@@ -75,10 +75,10 @@ _Stack 생성 화면_
 - **Repository URL**: 변경된 사항이 있는지 감지할 저장소 주소
 - **username, personal access token**: 저장소 인증 정보
 
-> Web editor와 upload는 자동배포가 불가능합니다. GitOps를 위해서는 Git Repository 방식을 사용해야 합니다.
+> Git 저장소의 Compose 파일을 기준으로 자동 업데이트하려면 Git Repository 방식을 선택합니다. Web editor·Upload로 만든 Stack의 webhook 기능과 Git 기반 자동 업데이트는 구분해야 하며, 지원 범위는 버전과 에디션에 따라 확인해야 합니다.
 {: .prompt-warning }
 
-Portainer는 Polling 방식(일정 시간마다 저장소 체크)과 Webhook 방식(요청을 받으면 즉시 배포)을 지원합니다. Polling은 유료 기능이므로 Webhook 방식을 사용했습니다.
+Portainer의 Git 기반 자동 업데이트에는 Polling 방식(일정 시간마다 저장소 확인)과 Webhook 방식(요청을 받으면 업데이트 확인)이 있습니다. 여기서는 Drone의 빌드 완료 시점에 맞춰 Webhook 방식을 사용했습니다. Polling 자체를 유료 기능이라고 단정해서는 안 되며, 추가 재배포 옵션의 제공 범위는 사용하는 버전과 에디션에서 확인해야 합니다.
 
 ![2023-11-24-image6](2023-11-24-image6.png)
 _자동 배포 설정_
@@ -92,7 +92,7 @@ Drone CI에서 Docker 빌드가 완료된 후 Portainer Server의 Webhook으로 
 ![2023-11-24-image7](2023-11-24-image7.png)
 _Drone CI 파이프라인 실행_
 
-요청을 받은 Portainer Server는 해당 Stack에서 변경된 이미지가 있는 컨테이너를 확인하여 새로 띄웁니다.
+요청을 받은 Portainer Server는 Git 저장소의 변경을 확인해 Stack을 업데이트합니다. 같은 이미지 태그에 새 이미지만 Push하면 Git 변경이 없어 배포를 건너뛸 수 있어요. 이미지 태그를 갱신한 Compose 파일을 Git에 커밋하거나, 해당 버전에서 제공하는 이미지 다시 받기와 강제 재배포 옵션을 설정해야 합니다.
 
 ![2023-11-24-image8](2023-11-24-image8.png)
 _Portainer 자동 배포 실행_
@@ -105,16 +105,22 @@ _Portainer 자동 배포 실행_
 2. Drone CI 파이프라인 실행
 3. Docker 이미지 빌드
 4. 이미지 레지스트리에 Push
-5. Portainer Webhook 호출
-6. Portainer가 새 이미지로 컨테이너 재배포
+5. Git의 이미지 태그 갱신 또는 이미지 재조회·강제 재배포 설정 확인
+6. Portainer Webhook 호출
+7. Portainer가 새 이미지로 컨테이너 재배포
 
 **Webhook 호출 예시**
+
+Portainer 화면에서 복사한 전체 URL을 Drone Secret `portainer_webhook_url`에 등록합니다. Stack과 서비스의 webhook 경로는 다를 수 있으므로 URL을 직접 조합하지 않습니다.
 
 ```yaml
 - name: deploy
   image: curlimages/curl
+  environment:
+    PORTAINER_WEBHOOK_URL:
+      from_secret: portainer_webhook_url
   commands:
-    - curl -X POST https://portainer.example.com/api/webhooks/xxxx
+    - curl --fail --show-error -X POST "$PORTAINER_WEBHOOK_URL"
   when:
     branch:
       - main
@@ -124,6 +130,12 @@ _Portainer 자동 배포 실행_
 
 ## 정리
 
-Portainer는 웹 UI가 직관적이고 Webhook으로 무료 자동 배포가 가능해서 좋았어요. 다만 Polling 자동 배포는 유료이고 Blue-Green이나 Canary 같은 배포 전략은 지원이 제한적입니다.
+Portainer는 웹 UI가 직관적이고 Drone의 빌드 완료 후 Webhook으로 배포를 연결할 수 있어 좋았어요. 다만 자동 업데이트의 변경 감지 조건과 사용 버전의 기능 범위를 먼저 확인해야 합니다.
 
 개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었어요. 더 고급 기능이 필요하면 ArgoCD나 Flux 같은 도구도 있습니다.
+
+## 참고 자료
+
+- [Docker: Compose 네트워크와 서비스 이름](https://docs.docker.com/compose/how-tos/networking/)
+- [Portainer: Stack 생성과 GitOps 업데이트](https://docs.portainer.io/user/docker/stacks/add)
+- [Portainer: Stack Webhook](https://docs.portainer.io/user/docker/stacks/webhooks)

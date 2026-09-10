@@ -9,7 +9,7 @@ pin: false
 description: Claude Code 제작자 Boris Cherny의 실제 워크플로우(병렬 세션, Plan mode, CLAUDE.md, slash command, sub-agent, hooks, permissions, MCP, 검증 루프)를 한국어로 정리합니다.
 ---
 
-> 이 글은 Claude Code 제작자 Boris Cherny가 공유한 사용 팁을 바탕으로 작성했습니다.
+> 이 글은 Claude Code 제작자 Boris Cherny가 2026년 1월 초 공유한 사용 팁을 바탕으로 작성했습니다. 당시 워크플로우 소개에 제 적용 의견을 덧붙였으며, 모델명과 명령은 당시 기준입니다.
 {: .prompt-info }
 
 ---
@@ -20,7 +20,7 @@ Claude Code를 쓰다 보면 결국 이런 질문으로 돌아옵니다. "잘 �
 
 이 글에서 가져갈 건 두 가지입니다.
 - 정답은 없다. 팀과 개인의 워크플로우에 맞게 커스터마이즈하라.
-- 단, 검증 루프를 만들면 결과물이 2~3배 좋아진다.
+- 검증 루프를 만들어라. Boris가 말한 '2~3배'는 경험에 따른 평가이며, 모든 작업에서 보장되는 측정값은 아니다.
 
 ## 한 장 요약
 
@@ -37,13 +37,13 @@ Claude Code를 쓰다 보면 결국 이런 질문으로 돌아옵니다. "잘 �
 
 Boris는 터미널에서 Claude 세션 5개를 동시에 돌리고 탭을 1~5로 번호 붙여 관리합니다. 화면을 계속 지켜보지 않고 알림으로 회수하는 게 포인트입니다.
 
-탭마다 역할(리뷰/리팩터/테스트/문서)을 정해둡니다. iTerm2의 시스템 알림을 켜두면 입력이 필요할 때 놓치지 않습니다. 다만 세션이 늘수록 문맥 스위칭 비용도 늘어납니다. "항상 5개"보다 "필요할 때만 5개"가 현실적일 때도 많습니다.
+이를 적용한다면 탭마다 역할(리뷰/리팩터/테스트/문서)을 정해두는 것도 방법입니다. iTerm2의 시스템 알림을 켜두면 입력이 필요할 때 놓치지 않습니다. 다만 세션이 늘수록 문맥 스위칭 비용도 늘어납니다. "항상 5개"보다 "필요할 때만 5개"가 현실적일 때도 많습니다.
 
 참고: [iTerm 2 system notifications](https://code.claude.com/docs/en/terminal-config#iterm-2-system-notifications)
 
 ## 2. 웹에서도 5~10개 병렬 + teleport/모바일
 
-터미널만이 아닙니다. Boris는 `claude.ai/code`에서도 5~10개 세션을 병렬로 운영합니다. 로컬 세션을 웹으로 넘기거나(`&`), `--teleport`로 오가기도 합니다. 아침마다 모바일에서 몇 개 세션을 시작해두고 나중에 확인하는 식이죠.
+터미널만이 아닙니다. Boris는 `claude.ai/code`에서도 5~10개 세션을 병렬로 운영합니다. `&`로 작업을 웹에 넘기거나, `--teleport`로 웹 세션을 터미널에서 이어갑니다. 아침마다 모바일에서 몇 개 세션을 시작해두고 나중에 확인하는 식이죠.
 
 ![claude.ai/code 병렬 세션](2026-01-04-image1.png)
 _웹에서 여러 세션을 병렬로 운영하는 예시_
@@ -69,7 +69,7 @@ _git에 체크인해서 팀이 함께 유지보수하는 CLAUDE.md_
 
 ## 5. 코드리뷰에서 CLAUDE.md 업데이트를 PR에 포함
 
-Boris는 코드리뷰 중에 동료 PR에 @.claude를 태그해 이번에 배운 규칙을 CLAUDE.md에 반영하자고 요청합니다. Claude Code GitHub action을 사용해서요.
+Boris는 코드리뷰 중에 동료 PR에 `@claude`를 태그해 이번에 배운 규칙을 CLAUDE.md에 반영하자고 요청합니다. Claude Code GitHub Action을 사용해서요.
 
 ![PR 코멘트로 CLAUDE.md 업데이트 요청](2026-01-04-image3.png)
 _코드리뷰 중 규칙 업데이트를 PR에 포함시키는 예시_
@@ -95,7 +95,7 @@ _Plan mode에서 계획을 확정한 뒤 실행으로 넘어가기_
 
 ## 8. 서브에이전트로 공통 PR 워크플로우 자동화
 
-Boris는 `code-simplifier`, `verify-app` 같은 서브에이전트를 정기적으로 사용합니다. slash command가 작은 명령이라면 sub-agent는 반복되는 워크플로우 전체를 자동화하는 개념입니다.
+Boris는 `code-simplifier`, `verify-app` 같은 서브에이전트를 정기적으로 사용합니다. slash command는 재사용할 지시문을 호출하는 수단이고, sub-agent는 별도 문맥과 도구 설정으로 작업을 맡는 실행 단위입니다. 작업의 크기만으로 구분되는 개념은 아닙니다.
 
 PR마다 반복되는 후처리(정리/단순화/검증/문서)는 sub-agent로 분리합니다. 지시문에는 입력/출력/검증 기준을 명확히 적습니다. 자주 쓰는 것 위주로 제한하세요. 에이전트가 많아질수록 관리 비용이 생깁니다.
 
@@ -103,7 +103,7 @@ PR마다 반복되는 후처리(정리/단순화/검증/문서)는 sub-agent로 
 
 ## 9. PostToolUse hook으로 포맷팅 자동화
 
-Claude가 보통은 포맷을 잘 맞추지만 CI에서 마지막 10%가 터지는 순간이 있습니다. Boris 팀은 PostToolUse hook으로 포맷팅을 자동 적용해 CI 실패를 줄입니다.
+Claude가 보통은 포맷을 잘 맞추지만 마지막 서식 오류가 CI 실패로 이어지기도 합니다. Boris 팀은 PostToolUse hook으로 포맷팅을 자동 적용해 이런 실패를 줄입니다.
 
 ![PostToolUse hook 예시](2026-01-04-image5.png)
 _tool use 이후 포맷을 자동으로 맞추는 hook_
@@ -112,7 +112,7 @@ _tool use 이후 포맷을 자동으로 맞추는 hook_
 
 ## 10. `/permissions`로 안전한 커맨드만 사전 허용
 
-Boris는 `--dangerously-skip-permissions`를 쓰지 않습니다. 대신 `/permissions`에서 안전하다고 확신하는 커맨드를 미리 허용해 불필요한 프롬프트를 줄입니다. 설정은 `.claude/settings.json`에 담아 팀과 공유합니다.
+Boris는 일반적인 작업에서 `/permissions`로 안전하다고 판단한 커맨드를 미리 허용해 불필요한 프롬프트를 줄입니다. 설정은 `.claude/settings.json`에 담아 팀과 공유합니다. 격리된 샌드박스에서의 장기 작업은 아래 12번에서 따로 다룹니다.
 
 ![/permissions 예시](2026-01-04-image6.png)
 _안전한 커맨드를 미리 허용하는 흐름_
@@ -127,9 +127,9 @@ Boris는 Claude Code가 코딩만 하지 않게 만듭니다. Slack 검색/포�
 
 ## 12. 장기 작업은 background agent로 끝까지
 
-오래 걸리는 작업은 Claude가 끝나도 확인이 필요합니다. Boris는 작업 종료 시점에 background agent로 검증을 돌리거나 Stop hook으로 더 결정적으로 만들거나 `ralph-wiggum` 같은 플러그인을 사용합니다. 샌드박스에서는 `--permission-mode=dontAsk`로 세션이 막히지 않게 운영하기도 합니다.
+오래 걸리는 작업은 Claude가 끝나도 확인이 필요합니다. Boris는 작업 종료 시점에 background agent로 검증을 돌리거나 Stop hook으로 검증을 연결하거나 `ralph-wiggum` 같은 플러그인을 사용합니다. 샌드박스에서 `--permission-mode=dontAsk` 등을 사용하는 예도 들었습니다. 다만 `dontAsk`는 모든 도구를 허용하는 옵션이 아닙니다. [사전 허용되지 않은 도구 요청은 자동 거부](https://code.claude.com/docs/en/permissions)하므로, 필요한 권한을 먼저 설정해야 합니다.
 
-사람이 자리에 없을 때도 작업 완료 후 검증까지 이어지게 만들어야 합니다. 자동 검증을 워크플로우에 넣고 공격적인 권한 모드는 샌드박스나 격리 환경에서만 쓰세요. 장기 작업 자동화는 실패했을 때 피해 범위가 커질 수 있으니 격리와 롤백 전략도 같이 둬야 합니다.
+사람이 자리에 없을 때도 작업 완료 후 검증까지 이어지도록 만드는 게 핵심입니다. 자동 검증에 필요한 권한과 격리 범위를 함께 정하고, 실패했을 때 멈추거나 복구할 조건도 마련하세요.
 
 참고: [ralph-wiggum 플러그인](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/ralph-wiggum)
 
@@ -141,7 +141,7 @@ Boris가 가장 강조한 팁입니다.
 
 Claude Code 팀은 변경을 랜딩하기 전에 Claude가 Chrome extension으로 브라우저를 열고 UI를 테스트하게 합니다. 실패하면 다시 고치고 반복하도록 운영합니다.
 
-테스트 명령, 검증 체크리스트, 샘플 입력을 Claude에게 주고 통과 조건을 명확히 적으세요. 검증이 없으면 Claude는 그럴듯한 결과에서 멈춥니다. 작은 프로젝트일수록 검증이 더 중요합니다.
+테스트 명령, 검증 체크리스트, 샘플 입력을 Claude에게 주고 통과 조건을 명확히 적으세요. 검증이 없으면 그럴듯한 결과에서 멈출 수 있습니다. 작은 프로젝트에서도 필요한 검증을 생략하지 않는 게 좋습니다.
 
 참고: [Chrome extension](https://code.claude.com/docs/en/chrome)
 
@@ -162,6 +162,8 @@ Claude Code 팀은 변경을 랜딩하기 전에 Claude가 Chrome extension으�
 
 ## 참고 링크
 
+- [Boris Cherny - 사용 팁 원문 스레드](https://x.com/bcherny/status/2007179832300581177)
+- [Claude Code GitHub Actions - @claude 호출](https://code.claude.com/docs/en/github-actions)
 - [Claude Code Docs](https://code.claude.com/docs/)
 - [iTerm 2 system notifications](https://code.claude.com/docs/en/terminal-config#iterm-2-system-notifications)
 - [Bash command execution](https://code.claude.com/docs/en/slash-commands#bash-command-execution)

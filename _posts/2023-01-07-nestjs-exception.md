@@ -11,12 +11,12 @@ description: NestJS 내장 예외 처리 레이어와 커스텀 Exception Filter
 ![2023-01-07-image1](2023-01-07-image1.png)
 _NestJS Exception Handling_
 
-[NestJS](https://docs.nestjs.com/exception-filters)에는 애플리케이션 전체의 모든 예외 처리를 하는 Exceptions Layer가 내장되어 있습니다. 애플리케이션 코드에서 예외 처리를 하지 않으면 이 레이어에서 예외를 처리합니다.
+[NestJS](https://docs.nestjs.com/exception-filters)에는 요청 처리 과정에서 잡히지 않은 예외를 처리하는 Exceptions Layer가 내장되어 있습니다. 다만 요청 흐름 밖의 타이머나 백그라운드 작업에서 발생한 예외까지 모두 처리하는 것은 아닙니다.
 
 ![2023-01-07-image2](2023-01-07-image2.png)
 _NestJS Exception Layer 동작 구조_
 
-커스텀으로 예외 레이어를 만들지 않는다면 아래와 같이 기본 JSON 응답을 합니다.
+기본 필터는 `HttpException`이면 해당 상태 코드와 응답 내용을 사용합니다. 그 외에 알 수 없는 예외는 일반적으로 아래와 같은 500 응답으로 처리합니다.
 
 ```json
 {
@@ -36,25 +36,29 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/co
 import { Request, Response } from 'express';
 
 @Catch(HttpException)
-export class AllExceptionFilter implements ExceptionFilter {
-  async catch(exception: HttpException, host: ArgumentsHost) {
+export class HttpExceptionFilter implements ExceptionFilter {
+  catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
-    const status = exception ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = exception.getStatus();
+    const exceptionResponse = exception.getResponse();
 
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      message: exception.message,
+      message:
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exceptionResponse as { message?: string | string[] }).message ?? exception.message,
     });
   }
 }
 ```
 
-`@Catch(HttpException)`은 http 통신의 예외를 캐치하겠다는 뜻입니다. 모든 예외를 캐치하고 싶다면 `@Catch()`로 적용하면 됩니다.
+`@Catch(HttpException)`은 `HttpException`과 그 하위 클래스의 예외를 처리한다는 뜻입니다. HTTP 요청 중 발생한 모든 오류를 뜻하지는 않아요. 모든 예외를 받으려면 `@Catch()`를 사용하고 매개변수를 `unknown`으로 받은 뒤, `instanceof HttpException`으로 확인해 상태 코드와 응답을 분기해야 합니다. 위 코드는 Express 어댑터 기준입니다.
 
 ---
 
@@ -63,7 +67,7 @@ export class AllExceptionFilter implements ExceptionFilter {
 ### 컨트롤러 전체에 적용
 
 ```typescript
-@UseFilters(AllExceptionFilter)
+@UseFilters(HttpExceptionFilter)
 @Controller('user')
 export class UserController {
   constructor(private userService: UsersService) {}
@@ -78,7 +82,7 @@ export class UserController {
 export class UserController {
   constructor(private userService: UsersService) {}
 
-  @UseFilters(AllExceptionFilter)
+  @UseFilters(HttpExceptionFilter)
   @Get()
   async find() {
     // ...
