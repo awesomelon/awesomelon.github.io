@@ -11,12 +11,6 @@ layout: orchid
       <time datetime="{{ page.date | date_to_xmlschema }}">
         작성 {% include orchid-date.html date=page.date format='full' %}
       </time>
-      {% if page.last_modified_at %}
-        <br>
-        <time datetime="{{ page.last_modified_at | date_to_xmlschema }}">
-          수정 {% include orchid-date.html date=page.last_modified_at format='full' %}
-        </time>
-      {% endif %}
     </div>
   </header>
 
