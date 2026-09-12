@@ -203,6 +203,7 @@ compress_html:
     envs: [development]
 
 exclude:
+  - assets/img/favicons/site.webmanifest.erb
   - "*.gem"
   - "*.gemspec"
   - docs
