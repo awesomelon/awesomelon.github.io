@@ -9,7 +9,7 @@ img_path: /assets/img/for_post/
 description: Nexus로 사내 Docker Private Repository를 구축하고 설정한 과정을 정리합니다.
 ---
 
-애플리케이션을 Docker를 이용해 배포하다 보면 Docker Build 후 생성된 Docker Image를 관리할 수 있는 Repository가 필요해요. Nexus를 이용한 사내 Docker Private Repository를 구축해보겠습니다.
+Docker로 애플리케이션을 배포하다 보면 빌드한 이미지를 보관할 저장소가 필요해요. Nexus로 사내 전용 Docker 이미지 저장소를 구축해보겠습니다.
 
 ![2023-11-16-image1](2023-11-16-image1.png)
 _Nexus Repository Manager_

@@ -20,7 +20,7 @@ Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 �
 
 **Drone Server**는 Bitbucket의 webhook을 받아 파이프라인을 등록하고, 저장소의 `.drone.yml`을 바탕으로 실행할 작업을 관리합니다. Bitbucket에서 Drone으로 들어오는 webhook과 Runner가 Server에서 작업을 가져오는 통신은 방향이 다릅니다.
 
-**Drone Runner**는 Drone Server에서 task들을 polling하고 지정된 pipeline을 실행합니다.
+**Drone Runner**는 Drone Server에 주기적으로 작업을 요청해 가져온 뒤, 지정된 파이프라인을 실행합니다.
 
 ---
 
