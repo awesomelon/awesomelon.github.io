@@ -7,6 +7,7 @@ author: j-ho
 img_path: /assets/img/for_post/
 pin: false
 description: 투명 배경 HEVC 영상을 웹에서 사용할 때 파일 크기와 비트레이트, Range Request, 디코딩 메모리, GPU 합성, 캐러셀 운영 전략을 구분해 정리합니다.
+last_modified_at: 2026-09-12 13:38:07 +0900
 ---
 
 웹 페이지에 투명 배경을 가진 3D 애니메이션을 넣어야 하는 상황이 있었다.
@@ -23,7 +24,7 @@ description: 투명 배경 HEVC 영상을 웹에서 사용할 때 파일 크기�
 
 ## 먼저 투명 영상 지원 여부를 확인해야 한다
 
-**일반 HEVC를 재생할 수 있다는 것과 HEVC with Alpha의 투명도를 표시할 수 있다는 것은 다르다.** Apple은 iOS 13과 macOS Catalina의 Safari부터 HEVC with Alpha를 지원한다고 안내했다. Alpha를 지원하지 않는 HEVC 플레이어는 기본 영상만 재생하고 투명도 정보를 무시할 수 있다.
+**일반 HEVC를 재생할 수 있다는 것과 HEVC with Alpha의 투명도를 표시할 수 있다는 것은 다르다.** [Apple은 iOS 13과 macOS Catalina의 Safari부터 HEVC with Alpha를 지원한다고 안내했다](https://developer.apple.com/videos/play/wwdc2019/506/). Alpha를 지원하지 않는 HEVC 플레이어는 기본 영상만 재생하고 투명도 정보를 무시할 수 있다.
 
 따라서 브라우저의 일반 HEVC 지원 여부나 `canPlayType()` 결과만으로 투명 재생까지 보장해서는 안 된다. 실제 대상 OS와 브라우저에서 배경이 비치는지 확인하고, 지원하지 않는 환경에는 투명 WebM 등 검증된 대체 영상이나 정적 이미지를 제공해야 한다. 아래 용량과 성능 비교는 우선 해당 영상의 투명 재생이 가능한 환경을 전제로 한다.
 
@@ -69,7 +70,7 @@ description: 투명 배경 HEVC 영상을 웹에서 사용할 때 파일 크기�
 
 모바일 환경에서는 이동 중이거나 지하철, 건물 내부, 혼잡한 기지국 환경 등에서 순간적인 네트워크 속도가 크게 떨어질 수 있다.
 
-그래서 글로벌 웹 서비스를 대상으로 한다면 4MB나 8MB처럼 조금 더 보수적인 선택이 안정성 측면에서는 유리하다.
+같은 해상도와 프레임률에서 더 작은 파일은 대역폭 요구와 데이터 소비를 낮출 수 있다. 다만 화질이 요구를 충족하는지 먼저 비교해야 한다. 국가별 평균 속도나 파일 용량만으로 모바일 안정성을 확정할 수는 없다.
 
 ## CDN이 모든 네트워크 문제를 해결해주지는 않는다
 
@@ -111,9 +112,9 @@ Range: bytes=0-1048575
 Content-Range: bytes 0-1048575/8388608
 ```
 
-같은 응답을 받을 수 있다.
+같은 응답을 받을 수 있다. 이 헤더 예시의 전체 크기 `8,388,608 bytes`는 8MiB이며, 앞의 비트레이트 표에서 사용한 8MB와는 다른 단위다.
 
-AWS S3와 CloudFront는 이러한 Range 요청을 지원하기 때문에 일반적인 구성에서는 별도의 스트리밍 서버 없이도 영상 데이터를 필요한 범위만 전달할 수 있다.
+[S3의 GetObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)와 [CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RangeGETs.html)는 Range 요청을 지원한다. 유효한 Range 요청과 원본 응답 조건이 맞으면 별도 스트리밍 서버 없이 부분 응답을 전달할 수 있다. 다만 Range는 다운로드 단위를 제어하는 기능이며, 네트워크 속도에 따라 낮은 화질로 바꾸는 적응형 비트레이트 스트리밍과는 다르다.
 
 다만 `206 Partial Content`라는 응답 코드만 보고 브라우저가 항상 작은 조각만 다운로드한다고 단정해서는 안 된다.
 
@@ -305,7 +306,7 @@ React에서 `<video>`를 unmount하면 화면의 요소는 제거된다. 다만 
 
 중요한 것은 **반복했을 때 메모리가 안정화되는가**다.
 
-정상적인 경우라면:
+다음 숫자는 측정값이나 메모리 한계치가 아닌, 추세를 설명하기 위한 가상 예시다. 자원 사용이 안정화되는 경우에는:
 
 `180MB → 230MB → 270MB → 240MB → 270MB`
 
@@ -315,7 +316,7 @@ React에서 `<video>`를 unmount하면 화면의 요소는 제거된다. 다만 
 
 `180MB → 250MB → 320MB → 410MB → 500MB → 600MB`
 
-처럼 캐러셀을 반복할 때마다 계속 증가한다면 리소스가 제대로 해제되지 않는지 확인해야 한다.
+처럼 같은 순회를 반복할 때마다 계속 증가한다면 리소스가 제대로 해제되지 않는지 확인해야 한다. 초기 캐시 축적이나 다른 페이지 작업도 원인일 수 있으므로, 이 모양만으로 누수를 확정하지는 않는다.
 
 필요하다면 unmount 전에 좀 더 적극적으로:
 
@@ -370,7 +371,29 @@ video.load();
 
 이 더 중요하다.
 
-예를 들어 같은 1280px 해상도라면 8MB 영상을 4MB로 줄이는 것보다 **동시에 재생되는 영상 2개를 1개로 줄이는 것이 모바일 부하에는 훨씬 큰 효과가 있을 가능성이 높다.**
+예를 들어 같은 1280px 해상도라면 파일만 8MB에서 4MB로 줄이는 비교와, 실제 동시 재생을 2개에서 1개로 줄이는 비교를 분리하겠다. 후자는 활성 디코더와 합성 작업을 줄일 수 있다는 가설이다. 어느 쪽의 효과가 큰지는 실제 병목과 기기에서 확인해야 한다.
+
+## 선택 전에 비교할 최소 실험
+
+아래는 이 사례의 측정 결과가 아니라, 4MB·8MB·10MB 중 선택하기 위한 검증 계획이다. 한 번에 여러 조건을 바꾸면 개선 원인을 구분하기 어렵다.
+
+| 비교 | 고정할 조건 | 확인할 것 |
+|---|---|---|
+| 4MB / 8MB / 10MB | 해상도·FPS·화면 크기·동시 재생 수 | Alpha 가장자리·그림자 화질, 전송량, 재생 시작과 중단 |
+| 높은 해상도 / 낮은 해상도 | FPS·화면 크기·재생 수, 가능한 한 비슷한 시각적 품질 | 실제 표시 선명도와 스크롤·캐러셀 부하 |
+| 2개 재생 / 1개 재생 | 같은 파일·같은 화면 전환 | 끊김, 발열, 반복 전환 후 자원 사용 추세 |
+| 첫 방문 / 재방문 | 같은 기기·같은 네트워크 | 브라우저·CDN 캐시가 초기 지연을 가리고 있는가 |
+| 지원 환경 / 대체 환경 | 같은 콘텐츠와 배경 | 실제 투명 표시, 자동 재생 실패 시 이미지·재생 버튼 |
+
+해상도를 낮추면 보통 압축량도 달라지므로 완벽하게 한 변수만 고정한 실험은 어렵다. 네트워크 효과와 디코딩 효과를 구분하려면 충분히 버퍼된 상태의 재생도 별도로 비교하면 도움이 된다. 다만 이미 다운로드했더라도 버퍼가 계속 보존된다고 가정해서는 안 된다.
+
+모바일에서 “1280px가 필요한가”는 CSS 표시 크기와 기기의 픽셀 비율을 함께 봐야 한다. 가령 가로 320 CSS px, DPR 2라면 가로 640px 소스도 비교 후보가 된다. 이를 무조건 최적값으로 삼기보다 확대·변형과 Alpha 가장자리를 실제 표시 크기에서 확인한다.
+
+반복 순회 횟수와 기기·OS·브라우저 버전을 기록하고 첫 재생, 여러 차례 전환, 잠시 다른 탭으로 갔다가 복귀한 상태를 비교한다. 데스크톱의 네트워크 제한은 느린 연결을 흉내 낼 수 있지만 모바일 디코더·메모리·전력 조건까지 재현하지는 않는다.
+
+`preload`와 자동 재생은 브라우저 정책의 영향을 받는다. [HTML 미디어 규격](https://html.spec.whatwg.org/multipage/media.html#media-elements)에 맞게 `play()`의 실패도 처리하고, 재생할 수 없을 때 다음 동작이 보여야 한다. 장식용 영상이라면 움직임을 줄이려는 사용자에게 정적 이미지로도 같은 내용을 전달하는 방향을 선택할 수 있다.
+
+이 비교에서 화질 차이가 받아들일 만하면 작은 파일을 택한다. 충분히 버퍼된 뒤에도 화면이 끊긴다면 파일 용량만 더 줄이기보다 동시 재생 수·해상도·FPS를 살펴본다. **네트워크에서 기다리는 것과 이미 받은 영상을 그리지 못하는 것을 구분하는 것이 첫 판단이다.**
 
 ## 이번 케이스에서 선택한다면
 
@@ -399,7 +422,7 @@ video.load();
 
 결국 **4MB냐 8MB냐에는 하나의 정답이 없다.**
 
-파일 크기는 네트워크 문제이고, 영상 재생 중 발생하는 메모리와 성능 문제는 대부분 디코딩과 렌더링의 문제다.
+파일 크기는 네트워크 문제이고, 영상 재생 중 발생하는 메모리와 성능 문제는 압축 데이터 버퍼뿐 아니라 디코딩과 렌더링 경로까지 살펴야 한다.
 
 이 둘을 분리해서 생각하면 웹 영상 최적화에서 무엇을 먼저 손봐야 하는지가 훨씬 명확해진다.
 
@@ -410,5 +433,7 @@ video.load();
 - [Apple: HEVC Video with Alpha](https://developer.apple.com/videos/play/wwdc2019/506/)
 - [Chrome: Alpha transparency in Chrome video](https://developer.chrome.com/blog/alpha-transparency-in-chrome-video)
 - [AWS: CloudFront의 Range GET 처리](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RangeGETs.html)
+- [WHATWG: HTML 미디어 요소](https://html.spec.whatwg.org/multipage/media.html#media-elements)
+- [AWS: S3 GetObject와 Range](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
 - [MDN: video 요소와 preload](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video)
 - [MDN: Audio and video delivery](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Audio_and_video_delivery)
