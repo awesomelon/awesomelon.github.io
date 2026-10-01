@@ -5,7 +5,7 @@ categories: [ENGINEERING, FRONTEND]
 tags: [sam2, segmentation, interactive video, react, ux]
 author: j-ho
 pin: false
-published: false
+published: true
 description: SAM 2.1로 영상 속 안경을 추적하고, 프레임 동기화와 클릭 영역, 호버 인터랙션을 연결한 Interactive Film Runtime POC 제작기.
 ---
 
