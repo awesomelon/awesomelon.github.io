@@ -1,4 +1,4 @@
-# Orchid 스타일 홈/연락처 설정 (about.lines는 직접 수정하세요)
+# Orchid 스타일 홈 설정 (about.lines는 직접 수정하세요)
 
 nav:
   main:
@@ -7,9 +7,6 @@ nav:
   essays:
     label: Essays
     url: /essays/
-  contact:
-    label: Contact
-    url: /contact/
 
 about:
   lines:
@@ -21,14 +18,3 @@ home:
   preview_count: 6
   section_title: 최근 글
   more_label: "... 더 보기"
-
-contact:
-  channels:
-    - label: Email
-      text: bangjh1114@gmail.com
-      url: "mailto:bangjh1114@gmail.com"
-  follow:
-    - label: https://github.com/awesomelon
-      url: https://github.com/awesomelon
-    - label: https://j-ho.io
-      url: https://j-ho.io
