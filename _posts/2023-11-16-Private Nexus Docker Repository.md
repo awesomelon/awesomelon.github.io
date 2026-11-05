@@ -18,7 +18,7 @@ _Nexus Repository Manager_
 
 ## Nexus 서버 실행
 
-아래는 Linux Docker Engine과 Compose v2에서 **외부에 공개하지 않고 Registry의 동작을 확인하는 최소 실습**이다. 2023년의 화면은 보존하고, 예시는 로컬 바인딩과 영속 볼륨을 사용하도록 보완했다. 원격 CI/CD에 연결할 때는 뒤에서 설명하는 TLS와 권한을 먼저 준비한다.
+아래는 Linux Docker Engine과 Compose v2에서 **외부에 공개하지 않고 Registry 동작을 확인하는 최소 실습**이다. 2023년 화면은 보존하고, 예시는 로컬 바인딩과 영속 볼륨을 사용하도록 보완했다. 원격 CI/CD에 연결할 때는 뒤에서 설명하는 TLS와 권한을 먼저 준비한다.
 
 `.env`의 `NEXUS_IMAGE`에는 [공식 이미지](https://github.com/sonatype/docker-nexus3)의 버전 태그 또는 digest를 검토한 뒤 넣는다. 예를 들어 `NEXUS_IMAGE=sonatype/nexus3:<선택한-버전>`에서 꺾쇠 부분은 실제 게시된 태그로 바꾼다.
 
@@ -69,7 +69,7 @@ docker compose exec nexus cat /nexus-data/admin.password
 ![2023-11-16-image6](2023-11-16-image6.png)
 _admin.password 파일 내용 확인_
 
-로그인 후 새로운 비밀번호를 설정한다. 초기 관리자 계정은 설정에 사용하고, CI의 push와 배포 서버의 pull에는 별도 계정을 만든다. Realm 활성화와 계정의 repository 권한 부여는 별개다.
+로그인 후 새로운 비밀번호를 설정한다. 초기 관리자 계정은 설정에 사용하고, CI에서 push할 계정과 배포 서버에서 pull할 계정은 별도로 만든다. Realm 활성화와 계정에 repository 권한을 부여하는 작업은 별개다.
 
 ---
 
@@ -77,7 +77,7 @@ _admin.password 파일 내용 확인_
 
 ### Blob Stores 생성
 
-Blob Store는 실제 데이터를 저장하는 장소다. 여기서는 저장소 용도를 구분하기 위해 `hosted`, `proxy`라는 이름으로 만든다. 이 이름은 Blob Store의 유형이 아니라 다음 단계에서 만들 Repository의 용도를 나타낸다.
+Blob Store는 실제 데이터를 저장하는 장소다. 여기서는 저장소 용도를 구분하기 위해 `hosted`, `proxy`라는 이름으로 만든다. 이 이름은 Blob Store 유형이 아니라 다음 단계에서 만들 Repository 용도를 나타낸다.
 
 ![2023-11-16-image12](2023-11-16-image12.png)
 _Hosted Blob Store 생성_
@@ -86,7 +86,7 @@ _Hosted Blob Store 생성_
 
 **Repository Type:**
 - **Hosted**: private Docker image를 관리하는 repository
-- **Proxy**: Docker Hub와 같은 외부 Repository에 대해 Proxy 역할
+- **Proxy**: Docker Hub와 같은 외부 Repository 요청을 중계하고 이미지를 캐시하는 repository
 
 docker(hosted)를 선택하고 HTTP 포트는 8082로 설정한다.
 
@@ -98,7 +98,7 @@ Docker Hub 다운로드를 캐시하려면 선택적으로 docker(proxy)를 생�
 ![2023-11-16-image17](2023-11-16-image17.png)
 _Proxy Repository 설정_
 
-위의 8082 포트는 hosted Repository 전용이다. proxy Repository도 Docker 클라이언트에서 이용하려면 별도 connector 포트를 설정해 공개하거나, hosted와 proxy를 묶은 group Repository의 connector로 접속해야 한다.
+위 8082 포트는 hosted Repository 전용이다. proxy Repository도 Docker 클라이언트에서 이용하려면 별도 connector 포트를 설정해 공개하거나, hosted와 proxy를 묶은 group Repository의 connector로 접속해야 한다.
 
 ### Realms 설정
 
@@ -109,7 +109,7 @@ _Docker Bearer Token Realm 활성화_
 
 ### HTTP 실습과 원격 운영 구분
 
-위 예시의 Registry는 `127.0.0.1:8082`에만 열려 있다. Docker Engine은 loopback 주소를 기본적으로 insecure registry로 취급하므로, 같은 호스트의 실습은 `localhost:8082`로 진행할 수 있다.
+위 예시에서 Registry는 `127.0.0.1:8082`에만 열려 있다. Docker Engine은 loopback 주소를 기본적으로 insecure registry로 취급하므로, 같은 호스트에서는 `localhost:8082`로 진행할 수 있다.
 
 다른 호스트의 HTTP Registry를 사용한다면 **이미지를 받거나 보내는 Docker daemon**에 해당 `host:port`를 명시해야 한다. 브라우저나 Nexus 컨테이너 안에서 설정하는 항목이 아니다. [Docker daemon의 insecure registry 설명](https://docs.docker.com/reference/cli/dockerd/#insecure-registries)
 
@@ -153,7 +153,7 @@ _Nexus에 업로드된 이미지 확인_
 
 ## 실패 지점을 나눠 확인하기
 
-| 증상 | 확인할 것 |
+| 증상 | 확인할 내용 |
 | --- | --- |
 | UI도 열리지 않음 | Nexus 초기화 로그, 메모리, 볼륨 권한 |
 | `/v2/`가 404 또는 HTML 반환 | UI 포트로 보냈는지, hosted connector·프록시 경로 |
@@ -174,7 +174,7 @@ _Nexus에 업로드된 이미지 확인_
 6. 로컬 HTTP 실습 또는 원격 TLS 구성
 7. digest와 권한을 포함한 push/pull 검증
 
-실제 운영에서는 DB와 Blob Store를 일관된 시점으로 복원할 수 있도록 사용하는 버전의 백업 절차를 따른다. 볼륨이 있다고 해서 백업까지 된 것은 아니다.
+실제 운영에서는 DB와 Blob Store를 일관된 시점으로 복원할 수 있도록 사용하는 버전의 백업 절차를 따른다. 볼륨이 있다고 해서 백업까지 보장되지는 않는다.
 
 Cleanup Policy를 적용하기 전에는 배포 중이거나 롤백에 필요한 이미지가 삭제되지 않도록 보존 기준을 정하고, 실제 용량 회수에 필요한 작업도 해당 버전 문서에서 확인한다.
 

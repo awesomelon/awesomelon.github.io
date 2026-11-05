@@ -11,20 +11,20 @@ description: Terraform으로 AWS 인프라를 코드로 관리하고 EC2, Load B
 
 IaC(Infrastructure as Code)는 콘솔에서 수동으로 인프라를 만드는 대신 코드로 인프라를 생성하고 관리하는 방식이다. 리소스 구성을 버전 관리할 수 있고, 같은 구성을 다시 쓰거나 공유하기도 쉽다.
 
-대표적인 도구로 HashiCorp에서 개발 중인 Terraform이 있다. AWS, GCP, Azure와 같은 주요 클라우드 서비스를 프로바이더 방식으로 지원하므로 멀티 클라우드 리소스도 선언하고 관리할 수 있다.
+대표 도구로 HashiCorp에서 개발 중인 Terraform이 있다. AWS, GCP, Azure와 같은 주요 클라우드 서비스를 프로바이더 방식으로 지원하므로 멀티 클라우드 리소스도 선언하고 관리할 수 있다.
 
 > 이 글은 2023년 Terraform 1.6.4와 AWS provider 5 계열을 사용하던 예시를 바탕으로 합니다. 아래 본문은 기존 VPC·ALB에 서비스 하나를 연결하는 학습용 구성입니다. 최신 provider로 자동 업그레이드하는 안내는 아니며, 2026년의 state 잠금 방식은 마지막에서 별도로 설명합니다.
 {: .prompt-info }
 
-**만드는 것:** EC2와 Security Group, Target Group·attachment, ALB listener rule, Route53 alias record.
+**생성할 리소스:** EC2와 Security Group, Target Group·attachment, ALB listener rule, Route53 alias record.
 
-**미리 있어야 하는 것:** 같은 리전의 VPC·서브넷·키 페어, 해당 VPC의 internet-facing ALB, 대상 도메인을 포함하는 인증서가 연결된 HTTPS 443 listener, 올바르게 위임된 public Route53 Hosted Zone이다. listener priority는 기존 규칙과 겹치지 않아야 한다.
+**미리 준비할 리소스:** 같은 리전의 VPC·서브넷·키 페어, 해당 VPC의 internet-facing ALB, 대상 도메인을 포함하는 인증서가 연결된 HTTPS 443 listener, 올바르게 위임된 public Route53 Hosted Zone이 필요하다. listener priority는 기존 규칙과 겹치지 않아야 한다.
 
-EC2를 배치할 서브넷의 가용 영역(AZ)은 기존 ALB에서 활성화된 영역이어야 한다. 같은 VPC여도 이 조건이 맞지 않으면 대상 등록 후 `Target.NotInUse` 상태가 되어 트래픽을 받지 못할 수 있다. [AWS의 대상 상태 설명](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/check-target-health.html)을 함께 확인한다.
+EC2를 배치할 서브넷이 속한 가용 영역(AZ)은 기존 ALB에서 활성화된 영역이어야 한다. 같은 VPC여도 이 조건이 맞지 않으면 대상 등록 후 `Target.NotInUse` 상태가 되어 트래픽을 받지 못할 수 있다. [AWS의 대상 상태 설명](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/check-target-health.html)을 함께 확인한다.
 
 EC2에 애플리케이션을 설치·실행하는 과정은 포함하지 않는다. 준비된 AMI를 사용하거나 별도로 구성하고, target port와 `/health`가 응답하도록 해야 한다.
 
-EC2의 SSH에는 VPN·bastion 등 해당 서브넷으로 접근할 수 있는 경로가 필요하다. 이 구성은 단일 EC2를 사용하므로 장애 시에도 계속 서비스를 제공하는 고가용성 구성은 아니다.
+EC2에 SSH로 접속하려면 VPN·bastion 등 해당 서브넷으로 접근할 수 있는 경로가 필요하다. 이 구성은 단일 EC2를 사용하므로 장애 시에도 계속 서비스를 제공하는 고가용성 구성은 아니다.
 
 리소스를 한 개씩 `apply`하는 대신 파일을 모두 작성하고 전체 plan을 확인한다. Terraform은 파일에 적힌 순서가 아니라 참조 관계로 의존성을 계산한다.
 
@@ -32,7 +32,7 @@ EC2의 SSH에는 VPN·bastion 등 해당 서브넷으로 접근할 수 있는 �
 
 ## Terraform 설치
 
-새로운 macOS 환경에서는 아래의 [HashiCorp 공식 Homebrew 설치 경로](https://developer.hashicorp.com/terraform/install)를 사용할 수 있다. 본문의 1.6 예시와 다른 최신 CLI가 설치될 수 있으므로, 기존 프로젝트에서는 팀이 정한 버전을 선택한다.
+새로운 macOS 환경에서는 아래 [HashiCorp 공식 Homebrew 설치 경로](https://developer.hashicorp.com/terraform/install)를 사용할 수 있다. 본문의 1.6 예시와 다른 최신 CLI가 설치될 수 있으므로, 기존 프로젝트에서는 팀이 정한 버전을 선택한다.
 
 ```bash
 brew tap hashicorp/tap
@@ -55,14 +55,14 @@ tfenv use 1.6.4
 
 ## 프로젝트 설정
 
-폴더를 생성하고 provider.tf 파일을 추가한다.
+폴더를 생성하고 provider.tf 파일을 만든다.
 
 ```bash
 mkdir aws_infra && cd aws_infra
 touch provider.tf
 ```
 
-자격 증명은 코드에 넣지 않는다. 팀이 IAM Identity Center를 사용한다면 AWS CLI v2의 SSO profile로 로그인할 수 있다. 아래에서는 최초 `aws configure sso --profile blog-infra` 설정을 마쳤다고 가정한다. [AWS CLI의 SSO 인증](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
+자격 증명은 코드에 넣지 않는다. 팀이 IAM Identity Center를 사용한다면 AWS CLI v2에서 SSO profile로 로그인할 수 있다. 아래에서는 `aws configure sso --profile blog-infra`로 초기 설정을 마쳤다고 가정한다. [AWS CLI의 SSO 인증](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
 
 ```bash
 aws sso login --profile blog-infra
@@ -332,7 +332,7 @@ target_port       = 8080
 listener_priority = 100
 ```
 
-`192.0.2.10`과 `example.com`은 문서용 값이다. AMI는 서울 리전에서 사용할 수 있고 `t2.micro`의 아키텍처와 맞아야 한다. 선택한 AMI의 인스턴스 메타데이터 접근 방식이 IMDSv2와 호환되는지도 확인한다. 비용과 사용 가능한 인스턴스 종류는 자신의 AWS 환경에서 확인한다.
+`192.0.2.10`과 `example.com`은 문서용 값이다. AMI는 서울 리전에서 사용할 수 있고 `t2.micro`의 아키텍처와 맞아야 한다. 선택한 AMI에서 인스턴스 메타데이터에 접근하는 방식이 IMDSv2와 호환되는지도 확인한다. 비용과 사용 가능한 인스턴스 종류는 자신의 AWS 환경에서 확인한다.
 
 ```bash
 terraform fmt
@@ -353,14 +353,14 @@ _당시 Terraform Plan 결과_
 ![2023-11-26-image4](2023-11-26-image4.png)
 _당시 Terraform Apply 결과_
 
-`apply` 성공은 AWS 리소스가 만들어졌다는 뜻이며, 애플리케이션의 정상 응답까지 보장하지는 않는다.
+`apply` 성공은 AWS 리소스가 만들어졌다는 뜻이며, 애플리케이션이 정상 응답한다고 보장하지는 않는다.
 
 | 확인 | 실패할 때 확인할 경계 |
 | --- | --- |
 | Target Group이 healthy | 앱의 target port·`/health`, ALB에서 활성화된 AZ에 EC2가 있는지, ALB와 EC2의 보안 그룹, NACL |
 | HTTPS로 도메인 접속 성공 | DNS 위임·alias, listener 인증서의 도메인 범위 |
 | 올바른 앱이 응답 | host-header 규칙과 priority, target attachment |
-| 다시 plan했을 때 예상치 못한 변경 없음 | 수동 변경, 동적인 입력, provider 차이 |
+| 다시 plan했을 때 예상치 못한 변경 없음 | 수동 변경, 동적 입력, provider 차이 |
 
 외부에 공개한 URL에서 대표 요청을 확인하고, 생성한 보안 그룹의 SSH 허용 범위도 다시 점검한다.
 
@@ -381,7 +381,7 @@ terraform plan -destroy  # 관리 중인 리소스의 삭제 계획 검토
 
 **State는 코드와 별도로 보호한다.** `.terraform/`, `*.tfstate*`, `tfplan`은 Git에서 제외하고 `.terraform.lock.hcl`은 포함한다. `sensitive = true`는 화면 표시를 가리는 기능이며 state 저장 자체를 막지는 않는다. [민감 정보와 state](https://developer.hashicorp.com/terraform/language/manage-sensitive-data)
 
-다음은 Terraform 1.6 계열에서 쓰던 S3 + DynamoDB 잠금 방식이다. 버킷과 `LockID`(String) 파티션 키를 가진 테이블은 미리 만들어져 있고, 실행 역할에 두 저장소의 필요한 접근 권한이 있다고 가정한다.
+다음은 Terraform 1.6 계열에서 쓰던 S3 + DynamoDB 잠금 방식이다. 버킷과 `LockID`(String) 파티션 키가 있는 테이블은 미리 만들어져 있고, 실행 역할이 두 저장소를 사용하는 데 필요한 권한을 갖고 있다고 가정한다.
 
 ```hcl
 terraform {
@@ -399,7 +399,7 @@ terraform {
 
 S3 버킷의 versioning, 암호화, 제한된 접근 권한을 구성하고 state 복구 방법도 정해둔다. lockfile 방식에서는 state 객체뿐 아니라 `.tflock` 객체의 읽기·쓰기·삭제 권한이 필요하다.
 
-기존 backend를 바꿀 때는 백업과 팀의 동시 실행 중단을 준비한 뒤 `terraform init -migrate-state`로 이전한다. 이 글의 실습 리소스와 state 저장소는 생명주기를 분리해 두는 편이 좋다.
+기존 backend를 바꿀 때는 먼저 state를 백업하고 팀에서 다른 Terraform 작업을 실행하지 않도록 조율한다. 그다음 `terraform init -migrate-state`로 이전한다. 이 글의 실습 리소스와 state 저장소는 생명주기를 분리해 두는 편이 좋다.
 
 환경을 정리할 때도 state의 관리 범위를 먼저 확인한다. 여기서 data source로 참조한 기존 ALB·VPC·Hosted Zone은 Terraform이 새로 만든 리소스와 다르다. 삭제 계획을 검토한 뒤 필요한 경우에만 `terraform destroy`를 실행한다.
 

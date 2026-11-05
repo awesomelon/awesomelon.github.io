@@ -9,7 +9,7 @@ img_path: /assets/img/for_post/
 description: Docker 기반 CI 플랫폼 Drone CI를 Bitbucket과 연동해 파이프라인을 구성한 과정을 정리합니다.
 ---
 
-Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 있고 YAML 파일로 파이프라인을 구성할 수 있다. 이 글에서는 Server와 Docker Runner를 컨테이너로 배포하고 각 파이프라인 단계도 컨테이너에서 실행한다. Drone에는 Exec·SSH 등 다른 Runner도 있으므로 모든 파이프라인이 Docker에서 실행되는 것은 아니다.
+Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 있고 YAML 파일로 파이프라인을 구성할 수 있다. 이 글에서는 Server와 Docker Runner를 컨테이너로 배포하고 각 파이프라인 단계도 컨테이너에서 실행한다. Drone에는 Exec·SSH 등 다른 Runner도 있으므로 모든 파이프라인이 Docker에서 실행되지는 않는다.
 
 ---
 
@@ -18,17 +18,17 @@ Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 �
 
 ## Drone 아키텍처
 
-**Drone Server**는 Bitbucket의 webhook을 받아 파이프라인을 등록하고, 저장소의 `.drone.yml`을 바탕으로 실행할 작업을 관리한다. Bitbucket에서 Drone으로 들어오는 webhook과 Runner가 Server에서 작업을 가져오는 통신은 방향이 다르다.
+**Drone Server**는 Bitbucket webhook을 받아 파이프라인을 등록하고, 저장소에 있는 `.drone.yml`을 바탕으로 실행할 작업을 관리한다. Bitbucket에서 Drone으로 들어오는 webhook과 Runner가 Server에서 작업을 가져오는 통신은 방향이 다르다.
 
-**Drone Runner**는 Drone Server에 주기적으로 작업을 요청해 가져온 뒤, 지정된 파이프라인을 실행한다.
+**Drone Runner**는 Drone Server에 일정 간격으로 작업을 요청해 가져온 뒤, 지정된 파이프라인을 실행한다.
 
 ---
 
 ## Bitbucket 연동 설정
 
-연동을 위해 Bitbucket OAuth Consumer의 Key와 Secret이 필요하다. 먼저 `https://drone.example.com`처럼 고정된 외부 주소와 TLS 인증서를 준비한다. Bitbucket Cloud가 webhook을 보낼 수 있어야 하므로 VPN 안에서 브라우저로 열리는 것만으로는 충분하지 않다. [Drone의 Bitbucket Cloud 설정](https://docs.drone.io/server/provider/bitbucket-cloud/)
+연동하려면 Bitbucket OAuth Consumer의 Key와 Secret이 필요하다. 먼저 `https://drone.example.com`처럼 고정된 외부 주소와 TLS 인증서를 준비한다. Bitbucket Cloud가 webhook을 보낼 수 있어야 하므로 VPN 안에서 브라우저로 열리는 것만으로는 충분하지 않다. [Drone의 Bitbucket Cloud 설정](https://docs.drone.io/server/provider/bitbucket-cloud/)
 
-OAuth Consumer의 저장소 조회·webhook 등록 권한은 공식 provider 안내에 맞춰 설정하고, Drone에 허용할 사용자·조직 범위도 함께 정한다. 이미지를 빌드할 수 있는 CI 서버를 누구나 사용할 수 있는 상태로 열어두지 않도록 해야 한다.
+OAuth Consumer의 저장소 조회·webhook 등록 권한은 공식 provider 안내에 맞춰 설정하고, Drone에 허용할 사용자·조직 범위도 함께 정한다. 이미지를 빌드할 수 있는 CI 서버를 누구나 사용하도록 열어두어서는 안 된다.
 
 ### BitBucket Workspace Settings 접속
 
@@ -89,7 +89,7 @@ volumes:
   drone_data:
 ```
 
-같은 디렉터리의 `.env`에는 다음 값을 넣는다. `REPLACE_...` 값은 실제 값으로 바꿔야 하며, 공유 비밀은 `openssl rand -hex 32`를 한 번 실행해 생성한다. Server와 Runner는 같은 변수를 참조하므로 서로 다른 비밀을 넣을 실수를 줄일 수 있다.
+같은 디렉터리에 있는 `.env`에는 다음 값을 넣는다. `REPLACE_...` 값은 실제 값으로 바꿔야 하며, 공유 비밀은 `openssl rand -hex 32`를 한 번 실행해 생성한다. Server와 Runner는 같은 변수를 참조하므로 서로 다른 비밀을 넣는 실수를 줄일 수 있다.
 
 ```dotenv
 DRONE_SERVER_IMAGE=drone/drone:2
@@ -101,7 +101,7 @@ DRONE_BITBUCKET_CLIENT_SECRET=REPLACE_WITH_OAUTH_SECRET
 DRONE_RPC_SECRET=REPLACE_WITH_GENERATED_SECRET
 ```
 
-`DRONE_USER_FILTER`에는 허용할 Bitbucket 계정을 쉼표로 구분해 넣고 허용되지 않은 계정의 등록이 거절되는지 확인한다. [등록 허용 목록 설정](https://docs.drone.io/server/reference/drone-user-filter/)
+`DRONE_USER_FILTER`에는 허용할 Bitbucket 계정을 쉼표로 구분해 넣고 허용되지 않은 계정으로는 등록할 수 없는지 확인한다. [등록 허용 목록 설정](https://docs.drone.io/server/reference/drone-user-filter/)
 
 `:2`와 `:1`은 공식 설치 문서에서 제시하는 계열 태그이며 고정 버전은 아니다. 연결 검증 후 운영 설정에는 검토한 정확한 태그 또는 digest를 기록한다. `.env`는 Git에서 제외하고 접근 권한을 제한한다. `docker compose config`는 해석된 secret까지 출력할 수 있으므로 여기서는 출력 없는 `--quiet` 검사를 사용한다.
 
@@ -124,7 +124,7 @@ Runner 로그에 Server 연결 성공이 나타나는지 확인한다. `DRONE_SE
 
 ## Repository 활성화
 
-브라우저에서 Drone Server에 접속하면 Bitbucket Repository가 연동된 것을 확인할 수 있다.
+브라우저에서 Drone Server에 접속하면 Bitbucket Repository가 연동되었는지 확인할 수 있다.
 
 ![2023-10-21-image4](2023-10-21-image4.png)
 _Drone에 연동된 Bitbucket Repository 목록_
@@ -138,7 +138,7 @@ _Bitbucket에 자동 등록된 Drone Webhook_
 
 ## 파이프라인 작성
 
-프로젝트의 root에 `.drone.yml` 파일을 생성한다. 아래는 배포가 아니라 저장소 이벤트와 Runner 연결을 확인하는 최소 파이프라인이다. 예시 Alpine 계열은 2026년 기준의 값이며, 실제 프로젝트에서는 빌드 도구에 맞는 이미지를 사용한다.
+프로젝트 root에 `.drone.yml` 파일을 생성한다. 아래는 배포가 아니라 저장소 이벤트와 Runner 연결을 확인하는 최소 파이프라인이다. 예시의 Alpine 계열은 2026년 기준이며, 실제 프로젝트에서는 빌드 도구에 맞는 이미지를 사용한다.
 
 ```yaml
 ---
@@ -178,7 +178,7 @@ _파이프라인 실행 상세 로그_
 | 실행 항목이 Pending에 머무름 | Runner 로그의 RPC 연결, 공유 비밀, Runner 용량·조건 |
 | 작업은 시작되지만 clone·pull 실패 | Runner의 Git·이미지 레지스트리 접근과 인증 |
 
-운영 파이프라인을 추가할 때는 빌드 성공만 확인하지 않고, 의도적으로 실패하는 작업 뒤의 배포 단계가 실행되지 않는지도 확인한다. 배포 secret은 필요한 저장소에만 등록하고 PR의 비신뢰 코드에 노출하지 않는다. 배포 조건은 `main` 같은 branch와 `push` 같은 event를 함께 제한해야 PR 대상 브랜치만 보고 배포되는 일을 피할 수 있다. [Drone trigger 규칙](https://docs.drone.io/pipeline/docker/syntax/trigger/)
+운영 파이프라인을 추가할 때는 빌드 성공만 확인하지 않고, 실패하도록 만든 작업 뒤에 오는 배포 단계가 실행되지 않는지도 확인한다. 배포 secret은 필요한 저장소에만 등록하고 PR의 비신뢰 코드에 노출하지 않는다. 배포 조건은 `main` 같은 branch와 `push` 같은 event를 함께 제한해야 PR 대상 브랜치만 보고 배포되는 일을 피할 수 있다. [Drone trigger 규칙](https://docs.drone.io/pipeline/docker/syntax/trigger/)
 
 ## 정리
 

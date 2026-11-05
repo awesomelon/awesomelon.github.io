@@ -1,5 +1,5 @@
 ---
-title: Kafka를 설치 및 연동해보자 (with NestJS)
+title: Kafka를 설치하고 연동해보자 (with NestJS)
 date: 2023-05-20 17:24:00 +0900
 categories: [ENGINEERING, BACKEND, Kafka]
 tags: [kafka, message queue, pub/sub, nestjs, installation]
@@ -9,7 +9,7 @@ description: Kafka 2.8 로컬 설치와 KafkaJS 기반 NestJS 연동, 발행·�
 last_modified_at: 2026-09-12 13:38:07 +0900
 ---
 
-Kafka를 로컬에 띄우고 NestJS에서 메시지를 보내고 받는 흐름을 정리했다. 목표는 **HTTP 요청으로 메시지를 발행하고, Consumer의 처리 로그와 그룹 offset까지 확인하는 것**이다. 개념부터 보고 싶다면 [Kafka가 뭐야?](/posts/kafka가-뭐야/)를 먼저 읽어보면 좋다.
+Kafka를 로컬에 띄우고 NestJS에서 메시지를 보내고 받는 흐름을 정리했다. 이 실습에서는 **HTTP 요청으로 메시지를 발행하고, Consumer의 처리 로그와 그룹 offset까지 확인한다.** 개념부터 보고 싶다면 [Kafka가 뭐야?](/posts/kafka가-뭐야/)를 먼저 읽어보면 좋다.
 
 ![Apache Kafka](2023-05-20-image1.jpg)
 _Apache Kafka_
@@ -19,7 +19,7 @@ _Apache Kafka_
 
 ## 1. 로컬 Kafka 준비
 
-Kafka 2.8의 안내는 Java 8 이상을 전제로 한다. 해당 버전을 재현할 호환 JDK를 준비하고 `java -version`으로 실제 사용 중인 버전을 확인해야 한다. 최신 JDK와의 호환성을 이 글이 보장하는 것은 아니다. [Kafka 2.8 Quick Start](https://kafka.apache.org/28/getting-started/quickstart/)
+Kafka 2.8의 안내는 Java 8 이상을 전제로 한다. 해당 버전을 재현할 호환 JDK를 준비하고 `java -version`으로 실제 사용 중인 버전을 확인해야 한다. 이 글이 최신 JDK와의 호환성까지 보장하지는 않는다. [Kafka 2.8 Quick Start](https://kafka.apache.org/28/getting-started/quickstart/)
 
 ```bash
 wget https://archive.apache.org/dist/kafka/2.8.0/kafka_2.13-2.8.0.tgz
@@ -48,7 +48,7 @@ ZooKeeper는 이 과거 구성에서 클러스터 메타데이터 등을 관리�
 ![당시 ZooKeeper 구성 자료](2023-05-20-image3.png)
 _Kafka 2.8의 ZooKeeper 기반 구성을 이해하기 위한 당시 자료_
 
-명령이 반환되었다고 준비가 끝난 것은 아니다. 아래 Topic 생성 요청이 성공하는지 확인하고, 실패하면 Kafka의 `logs/server.log`부터 살펴본다.
+명령이 반환되어도 준비가 끝났다고 볼 수는 없다. 아래 Topic 생성 요청이 성공하는지 확인하고, 실패하면 Kafka의 `logs/server.log`부터 살펴본다.
 
 ```bash
 bin/kafka-topics.sh --create \
@@ -196,7 +196,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
 자동 Topic 생성을 끈 이유는 이름 오타로 별도 Topic이 생겨 송수신이 엇갈리는 문제를 피하기 위해서다. Topic은 앞에서 명시적으로 만들었다.
 
-`acks: -1`은 현재 ISR의 확인을 기다리는 설정이며 Consumer의 처리가 끝났다는 뜻은 아니다. 복제본이 하나인 이 실습에서는 복제에 의한 내구성도 얻지 못한다. [KafkaJS Producer 설정](https://kafka.js.org/docs/producing)
+`acks: -1`은 현재 ISR의 확인을 기다리는 설정이며 Consumer의 처리가 끝났다는 뜻은 아니다. 복제본이 하나인 이 실습에서는 복제를 통한 내구성도 얻지 못한다. [KafkaJS Producer 설정](https://kafka.js.org/docs/producing)
 
 ### `kafka.module.ts`
 
@@ -317,7 +317,7 @@ bootstrap().catch((error) => {
 });
 ```
 
-`enableShutdownHooks()`는 프로세스 종료 신호에서 Nest 종료 훅이 실행되도록 한다. `SIGKILL`처럼 정리 기회를 주지 않는 종료까지 처리해 주는 것은 아니다. [Nest 종료 훅](https://docs.nestjs.com/fundamentals/lifecycle-events)
+`enableShutdownHooks()`는 프로세스 종료 신호에서 Nest 종료 훅이 실행되도록 한다. `SIGKILL`처럼 정리 기회를 주지 않는 종료까지 처리해 주지는 않는다. [Nest 종료 훅](https://docs.nestjs.com/fundamentals/lifecycle-events)
 
 ## 3. 발행·수신·재시작을 각각 검증하기
 
@@ -331,7 +331,7 @@ npm run start
 curl -i -X POST http://127.0.0.1:3000/messages
 ```
 
-[Nest의 기본 POST 응답 상태](https://docs.nestjs.com/controllers#status-code)는 201이며 본문에는 `{"published":true}`가 반환된다. 이는 Broker의 발행 확인을 받은 것이지 Consumer의 업무 처리가 성공했다는 뜻은 아니다. 애플리케이션 로그에서 `Hello World!`와 topic, partition, offset이 출력되는지도 따로 확인한다.
+[Nest의 기본 POST 응답 상태](https://docs.nestjs.com/controllers#status-code)는 201이며 본문에는 `{"published":true}`가 반환된다. 이는 Broker가 발행을 확인했다는 뜻이지 Consumer의 업무 처리가 성공했다는 뜻은 아니다. 애플리케이션 로그에서 `Hello World!`와 topic, partition, offset이 출력되는지도 따로 확인한다.
 
 ![당시 NestJS Producer 테스트](2023-05-20-gif1.gif)
 _2023년에 기록한 발행 테스트 화면. 개정한 코드의 새로운 실행 결과는 아님_
@@ -354,7 +354,7 @@ bin/kafka-consumer-groups.sh \
 ![당시 NestJS Consumer 테스트](2023-05-20-gif2.gif)
 _2023년에 기록한 구독 테스트 화면_
 
-처리 성공 직후 commit 전에 프로세스가 죽으면 같은 이벤트가 다시 전달될 수 있다. 따라서 실제 DB 변경을 넣을 때는 이벤트 ID 등을 이용한 멱등성 설계를 추가해야 한다. 위 로그 출력 예제는 exactly-once 처리를 구현한 것이 아니다.
+처리 성공 직후 commit 전에 프로세스가 죽으면 같은 이벤트가 다시 전달될 수 있다. 따라서 실제 DB 변경을 넣을 때는 이벤트 ID 등을 이용한 멱등성 설계를 추가해야 한다. 위 로그 출력 예제는 exactly-once 처리를 구현하지 않는다.
 
 ## 연결은 되는데 처리가 안 될 때
 
@@ -375,4 +375,4 @@ bin/kafka-server-stop.sh
 bin/zookeeper-server-stop.sh
 ```
 
-이 예제에서 얻어야 할 것은 “Hello World가 출력됐다”보다 **연결·발행 확인·업무 처리·commit이 서로 다른 단계라는 이해**다. 이 경계를 구분해야 운영 코드에서 누락과 중복을 어디서 다룰지도 정할 수 있다.
+이 예제의 목표는 “Hello World가 출력됐다”는 확인을 넘어 **연결·발행 확인·업무 처리·commit이 서로 다른 단계임을 이해하는 데** 있다. 이 경계를 구분해야 운영 코드에서 누락과 중복을 어디서 다룰지도 정할 수 있다.

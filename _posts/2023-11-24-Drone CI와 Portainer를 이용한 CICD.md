@@ -9,19 +9,19 @@ img_path: /assets/img/for_post/
 description: Drone CI로 이미지를 빌드하고 Portainer로 배포하는 GitOps 방식 CI/CD 파이프라인을 정리합니다.
 ---
 
-> [Drone CI](/posts/Drone-CI-for-Bitbucket/) 글과 연결되니 한번 읽어보시는 것을 추천합니다.
+> 관련 내용을 다룬 [Drone CI](/posts/Drone-CI-for-Bitbucket/) 글도 함께 읽어보시기를 추천합니다.
 {: .prompt-info }
 
 ---
 
-빌드한 이미지와 실제 서비스에서 실행 중인 이미지가 다르면 CI가 초록색이어도 배포에 성공했다고 할 수 없다. 이 글에서는 Drone의 이미지 빌드·push와 Portainer의 Stack 업데이트를 연결하고, 그 사이에서 변경을 놓치지 않는 방법을 정리한다.
+빌드한 이미지와 실제 서비스에서 실행 중인 이미지가 다르면 CI가 초록색이어도 배포에 성공했다고 할 수 없다. 이 글에서는 Drone에서 이미지 빌드·push를 마치면 Portainer가 Stack을 업데이트하도록 연결하고, 그 사이에서 변경을 놓치지 않는 방법을 정리한다.
 
 > 화면은 2023년 구축 당시의 기록입니다. 설치·예시는 2026년 문서를 참고해 보완했습니다. Docker Standalone 기준이며, Swarm의 무중단 업데이트 설정이나 Kubernetes 배포를 그대로 설명하는 예시는 아닙니다.
 {: .prompt-info }
 
 ## Portainer란?
 
-[Portainer](https://www.portainer.io)는 Kubernetes, Docker, Swarm 등을 쉽게 배포하고 관리할 수 있는 가벼운 관리 도구다. 웹 UI에서 실행 중인 컨테이너, 이미지, 볼륨 등을 직관적으로 확인하고 관리할 수 있다.
+[Portainer](https://www.portainer.io)는 Kubernetes, Docker, Swarm 등을 쉽게 배포하고 관리할 수 있는 가벼운 관리 도구다. 웹 UI에서 실행 중인 컨테이너, 이미지, 볼륨 등을 한눈에 확인하고 관리할 수 있다.
 
 Portainer는 Server와 Agent를 이용해 여러 환경을 중앙에서 관리할 수 있다. Docker Swarm에서는 각 노드에 Agent를 배치할 수 있고, 단일 Docker 환경에서는 로컬 소켓으로 직접 연결할 수도 있다.
 
@@ -32,7 +32,7 @@ _Portainer 아키텍처 구조_
 
 ## Portainer 설치
 
-한 대의 Linux Docker 호스트를 관리할 때는 Server가 로컬 Docker socket에 직접 연결하는 구성이 가장 단순하다. 아래는 [Portainer CE 설치 문서](https://docs.portainer.io/start/install-ce/server/docker/linux)를 바탕으로 작성한 `compose.yaml`이다. 여러 호스트를 관리할 때는 Agent를 추가하고, Swarm에서는 별도의 전역 Agent 배포 구성을 사용한다.
+Linux Docker 호스트 한 대를 관리할 때는 Server가 로컬 Docker socket에 직접 연결하는 구성이 가장 단순하다. 아래는 [Portainer CE 설치 문서](https://docs.portainer.io/start/install-ce/server/docker/linux)를 바탕으로 작성한 `compose.yaml`이다. 여러 호스트를 관리할 때는 Agent를 추가하고, Swarm에서는 별도의 전역 Agent 배포 구성을 사용한다.
 
 ```yaml
 services:
@@ -58,7 +58,7 @@ docker compose ps
 docker compose logs --tail=100 portainer
 ```
 
-같은 호스트에서 `https://localhost:9443`으로 접속한다. 원격에서 관리할 때는 관리망의 TLS 프록시나 SSH 터널을 사용하고, 초기 관리자 설정을 완료한다. 현재 버전에서 setup token을 요구하면 설치 문서의 초기 설정 절차를 따른다.
+같은 호스트에서 `https://localhost:9443`으로 접속한다. 원격에서 관리할 때는 관리망에 있는 TLS 프록시나 SSH 터널을 사용하고, 초기 관리자 설정을 완료한다. 현재 버전에서 setup token을 요구하면 설치 문서의 초기 설정 절차를 따른다.
 
 기본 9443 인증서는 자체 서명 인증서다. CI의 webhook 호출에 사용하려면 신뢰할 수 있는 인증서 또는 private CA 신뢰 구성이 필요하다. `curl -k`로 검증을 건너뛰는 방법은 배포 예시에 넣지 않는다.
 
@@ -66,7 +66,7 @@ docker compose logs --tail=100 portainer
 
 Portainer와 Runner는 Docker 제어 권한을 갖는다. 관리 UI와 webhook의 접근 경로를 필요한 운영자·CI로 제한하고, Agent를 추가한다면 Server와 호환되는 버전 및 접근 제한도 함께 구성해야 한다.
 
-컨테이너를 시작한 후 브라우저로 접속하면 Portainer와 연결된 환경을 볼 수 있다. 단일 Docker 호스트도 하나의 Environment이며, 모두 클러스터인 것은 아니다.
+컨테이너를 시작한 후 브라우저로 접속하면 Portainer와 연결된 환경을 볼 수 있다. 단일 Docker 호스트도 하나의 Environment이며, 모든 Environment가 클러스터를 뜻하지는 않는다.
 
 ![2023-11-24-image2](2023-11-24-image2.png)
 _Portainer 환경 목록_
@@ -87,14 +87,14 @@ _Stack 생성 화면_
 
 **주요 설정**
 - **Build Method**: Web editor, Upload, Git Repository 중 선택 (GitOps를 위해 Git Repository 권장)
-- **Repository URL**: 변경된 사항이 있는지 감지할 저장소 주소
+- **Repository URL**: 변경 여부를 확인할 저장소 주소
 - **Repository reference / Compose path**: 배포할 브랜치와 저장소 루트 기준 Compose 파일 경로
-- **저장소 인증**: 사용하는 Git provider와 Portainer 버전에 맞는 읽기 권한의 인증 정보
+- **저장소 인증**: 사용하는 Git provider와 Portainer 버전에 맞는 읽기 권한이 있는 인증 정보
 
-> Git 저장소의 Compose 파일을 기준으로 자동 업데이트하려면 Git Repository 방식을 선택합니다. 2026년 확인한 문서에서 일반적인 **Stack Webhook**은 Business Edition 기능으로 안내합니다. 이를 Git Repository의 **GitOps updates**와 같은 기능으로 보고 CE에서 모든 webhook을 쓸 수 있다고 가정하지 않습니다. 설치 버전·에디션의 GitOps 설정 화면에서 사용 가능한 방식을 확인합니다.
+> Git 저장소의 Compose 파일을 기준으로 자동 업데이트하려면 Git Repository 방식을 선택합니다. 2026년 확인한 문서는 일반적인 **Stack Webhook**을 Business Edition 기능으로 안내합니다. 이를 Git Repository의 **GitOps updates**와 같은 기능으로 보고 CE에서 모든 webhook을 쓸 수 있다고 가정하지 않습니다. 설치 버전·에디션의 GitOps 설정 화면에서 사용 가능한 방식을 확인합니다.
 {: .prompt-warning }
 
-Portainer의 Git 기반 자동 업데이트에는 Polling 방식(일정 시간마다 저장소 확인)과 Webhook 방식(요청을 받으면 업데이트 확인)이 있다. 여기서는 Drone의 빌드 완료 시점에 맞춰 Webhook 방식을 사용했다.
+Portainer에서 Git을 기준으로 자동 업데이트하는 방식에는 Polling 방식(일정 시간마다 저장소 확인)과 Webhook 방식(요청을 받으면 업데이트 확인)이 있다. 여기서는 Drone에서 빌드를 마친 시점에 맞춰 Webhook 방식을 사용했다.
 
 Polling 자체를 유료 기능이라고 단정해서는 안 된다. 추가 재배포 옵션의 제공 범위는 사용하는 버전과 에디션에서 확인해야 한다.
 
@@ -110,7 +110,7 @@ Drone CI에서 Docker 빌드가 완료되면 Portainer Server의 Webhook으로 �
 ![2023-11-24-image7](2023-11-24-image7.png)
 _Drone CI 파이프라인 실행_
 
-요청을 받은 Portainer Server는 Git 저장소의 변경을 확인해 Stack을 업데이트한다. 같은 이미지 태그에 새 이미지만 Push하면 Git 변경이 없어 배포를 건너뛸 수 있다. 이미지 태그를 갱신한 Compose 파일을 Git에 커밋하거나, 해당 버전에서 제공하는 이미지 다시 받기와 강제 재배포 옵션을 설정해야 한다.
+요청을 받은 Portainer Server는 Git 저장소에서 변경을 확인해 Stack을 업데이트한다. 같은 이미지 태그에 새 이미지만 Push하면 Git 변경이 없어 배포를 건너뛸 수 있다. 이미지 태그를 갱신한 Compose 파일을 Git에 커밋하거나, 해당 버전에서 제공하는 이미지 다시 받기와 강제 재배포 옵션을 설정해야 한다.
 
 ![2023-11-24-image8](2023-11-24-image8.png)
 _Portainer 자동 배포 실행_
@@ -133,7 +133,7 @@ _Portainer 자동 배포 실행_
 
 이 순서는 배포용 설정을 CI가 갱신하도록 **추가 구현해야 하는 보완안**이다. 아래 webhook 단계만 복사한다고 이미지 push와 Git 커밋까지 자동으로 생기지는 않는다. 애플리케이션과 배포 설정을 같은 저장소에 둔다면 CI의 설정 커밋이 다시 빌드를 촉발하지 않도록 트리거를 구분한다.
 
-[Portainer의 변경 감지 설명](https://docs.portainer.io/faqs/troubleshooting/stacks-deployments-and-updates/how-do-automatic-updates-for-stacks-applications-work)에 따르면 기본 경로는 Git 커밋을 비교한다. 같은 태그를 꼭 유지해야 한다면 사용 버전에서 re-pull과 force redeployment를 지원하는지, 각각 어떤 조건에서 동작하는지 따로 확인한다.
+[Portainer의 변경 감지 설명](https://docs.portainer.io/faqs/troubleshooting/stacks-deployments-and-updates/how-do-automatic-updates-for-stacks-applications-work)에 따르면 기본 업데이트 방식은 Git 커밋을 비교한다. 같은 태그를 꼭 유지해야 한다면 사용 버전에서 re-pull과 force redeployment를 지원하는지, 각각 어떤 조건에서 동작하는지 따로 확인한다.
 
 ## 전체 워크플로우
 
@@ -178,17 +178,17 @@ HTTP 성공 응답은 요청을 받았다는 신호일 뿐, 새 컨테이너가 
 
 배포 후에는 Portainer에서 Stack의 이벤트와 컨테이너 상태를 확인하고, 실행 이미지가 의도한 digest인지 비교한다. 서비스의 읽기 전용 상태 확인 URL과 대표 사용자 요청도 점검한다. Docker의 `running` 상태만으로 애플리케이션 준비가 끝났다고 판단하지 않는다.
 
-실패하면 이전 배포 설정 커밋이 가리키는 이미지로 되돌린 뒤 같은 검증을 수행한다. 이때 이전 이미지가 Registry에 남아 있어야 하며, DB 스키마를 변경한 배포는 코드 롤백만으로 복구되지 않을 수 있다.
+실패하면 이전 배포 설정 커밋이 가리키는 이미지로 되돌린 뒤 같은 검증을 반복한다. 이때 이전 이미지가 Registry에 남아 있어야 하며, DB 스키마를 변경한 배포는 코드 롤백만으로 복구되지 않을 수 있다.
 
-두 빌드가 동시에 끝날 때 오래된 빌드의 배포가 나중에 덮어쓰지 않도록 환경별 배포를 직렬화할 필요도 있다.
+두 빌드가 동시에 끝날 때 오래된 빌드가 나중에 배포되어 최신 배포를 덮어쓰지 않도록 환경별 배포를 직렬화할 필요도 있다.
 
 현재 예시는 단일 호스트이므로 무중단이나 고가용성을 보장하지 않는다. **CI 성공 → 업데이트 요청 성공 → 서비스 정상**의 세 결과를 구분해 관찰할 수 있을 때 자동 배포를 운영할 수 있다.
 
 ## 정리
 
-Portainer는 웹 UI가 직관적이고 Drone의 빌드 완료 후 Webhook으로 배포를 연결할 수 있어 좋았다. 다만 자동 업데이트의 변경 감지 조건과 사용 버전의 기능 범위를 먼저 확인해야 한다.
+Portainer는 웹 UI가 직관적이고 Drone에서 빌드를 마친 뒤 Webhook으로 배포를 연결할 수 있어 좋았다. 다만 자동 업데이트의 변경 감지 조건과 사용 버전의 기능 범위를 먼저 확인해야 한다.
 
-개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었다. Kubernetes에서 지속적인 상태 조정이 필요하다면 Argo CD나 Flux를 별도로 검토할 수 있지만, 이 단일 Docker 환경의 구성에 바로 바꿔 끼우는 도구는 아니다.
+개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었다. Kubernetes에서 상태를 지속해서 조정해야 한다면 Argo CD나 Flux를 별도로 검토할 수 있지만, 이 단일 Docker 환경의 구성에 바로 바꿔 끼우는 도구는 아니다.
 
 ## 참고 자료
 
