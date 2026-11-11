@@ -27,7 +27,7 @@ tar xvf kafka_2.13-2.8.0.tgz
 cd kafka_2.13-2.8.0
 ```
 
-실습은 같은 머신의 `localhost:9092`를 사용한다. 외부에 노출하는 서버 설정으로 그대로 사용해서는 안 된다. `config/server.properties`에 아래 항목이 있다면 값을 바꾸고, 없으면 추가해 로컬 주소를 명시할 수 있다.
+실습은 같은 머신의 `localhost:9092`를 사용한다. 외부에 노출하는 서버 설정으로 그대로 사용해서는 안 된다. `config/server.properties`에 아래 항목이 있다면 값을 바꾸고 없으면 추가해 로컬 주소를 명시한다.
 
 ```properties
 listeners=PLAINTEXT://127.0.0.1:9092
@@ -331,7 +331,7 @@ npm run start
 curl -i -X POST http://127.0.0.1:3000/messages
 ```
 
-[Nest의 기본 POST 응답 상태](https://docs.nestjs.com/controllers#status-code)는 201이며 본문에는 `{"published":true}`가 반환된다. 이는 Broker가 발행을 확인했다는 뜻이지 Consumer의 업무 처리가 성공했다는 뜻은 아니다. 애플리케이션 로그에서 `Hello World!`와 topic, partition, offset이 출력되는지도 따로 확인한다.
+[Nest의 기본 POST 응답 상태](https://docs.nestjs.com/controllers#status-code)는 201이며 본문에는 `{"published":true}`가 반환된다. 이는 Broker의 발행 확인일 뿐 Consumer의 처리 성공은 아니다. 애플리케이션 로그에서 `Hello World!`와 topic, partition, offset이 출력되는지도 따로 확인한다.
 
 ![당시 NestJS Producer 테스트](2023-05-20-gif1.gif)
 _2023년에 기록한 발행 테스트 화면. 개정한 코드의 새로운 실행 결과는 아님_
@@ -366,7 +366,7 @@ _2023년에 기록한 구독 테스트 화면_
 | 처리 중 rebalance가 반복됨 | handler 소요 시간과 session timeout, heartbeat 처리 |
 | 특정 메시지에서 계속 실패함 | payload와 업무 오류, 재시도·실패 격리 정책 및 Consumer crash 로그 |
 
-긴 작업에서는 `eachMessage`가 session timeout을 넘기지 않도록 heartbeat와 처리 전략을 검토해야 한다. 오류를 throw했다고 모든 실패가 원하는 정책대로 영원히 재시도되는 것도 아니므로 KafkaJS의 재시작 동작과 애플리케이션의 실패 처리를 구분해야 한다. [KafkaJS Consumer 제약](https://kafka.js.org/docs/consuming)
+긴 작업에서는 `eachMessage`가 session timeout을 넘기지 않도록 heartbeat와 처리 전략을 검토해야 한다. 오류를 throw해도 원하는 횟수만큼 재시도되리라는 보장은 없으므로 KafkaJS의 재시작 동작과 애플리케이션의 실패 처리를 구분해야 한다. [KafkaJS Consumer 제약](https://kafka.js.org/docs/consuming)
 
 실습을 끝내면 Nest 앱을 종료하고 로컬 Broker, ZooKeeper 순서로 정리한다.
 

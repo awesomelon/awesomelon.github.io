@@ -30,7 +30,8 @@ Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 �
 
 OAuth Consumer의 저장소 조회·webhook 등록 권한은 공식 provider 안내에 맞춰 설정하고, Drone에 허용할 사용자·조직 범위도 함께 정한다. 이미지를 빌드할 수 있는 CI 서버를 누구나 사용하도록 열어두어서는 안 된다.
 
-### BitBucket Workspace Settings 접속
+### Bitbucket Workspace Settings 접속
+{: id="bitbucket-workspace-settings-접속" }
 
 ![2023-10-21-image1](2023-10-21-image1.png)
 _Bitbucket Workspace Settings_
@@ -178,7 +179,7 @@ _파이프라인 실행 상세 로그_
 | 실행 항목이 Pending에 머무름 | Runner 로그의 RPC 연결, 공유 비밀, Runner 용량·조건 |
 | 작업은 시작되지만 clone·pull 실패 | Runner의 Git·이미지 레지스트리 접근과 인증 |
 
-운영 파이프라인을 추가할 때는 빌드 성공만 확인하지 않고, 실패하도록 만든 작업 뒤에 오는 배포 단계가 실행되지 않는지도 확인한다. 배포 secret은 필요한 저장소에만 등록하고 PR의 비신뢰 코드에 노출하지 않는다. 배포 조건은 `main` 같은 branch와 `push` 같은 event를 함께 제한해야 PR 대상 브랜치만 보고 배포되는 일을 피할 수 있다. [Drone trigger 규칙](https://docs.drone.io/pipeline/docker/syntax/trigger/)
+운영 파이프라인을 추가할 때는 빌드 성공만 확인하지 않고, 실패하도록 만든 작업 뒤에 오는 배포 단계가 실행되지 않는지도 확인한다. 배포 secret은 필요한 저장소에만 등록하고 PR의 비신뢰 코드에 노출하지 않는다. 배포 조건은 `main` 같은 branch와 `push` 같은 event를 함께 제한해야 PR 빌드에서 배포 단계가 실행되는 일을 피할 수 있다. [Drone trigger 규칙](https://docs.drone.io/pipeline/docker/syntax/trigger/)
 
 ## 정리
 

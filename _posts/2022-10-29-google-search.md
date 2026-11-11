@@ -32,7 +32,7 @@ last_modified_at: 2026-09-12 13:38:07 +0900
 
 페이지를 수집했다고 곧바로 검색에 나오는 것은 아니다. 검색엔진은 본문과 제목, 이미지 등의 내용을 분석하고, 비슷하거나 중복된 페이지 중 어떤 URL을 대표로 삼을지 판단한다.
 
-예를 들어 같은 글이 `/posts/cache/`, 추적 파라미터가 붙은 URL, 다른 카테고리 경로에서 각각 보인다면 사용자는 세 페이지를 열 수 있어도 검색엔진은 하나를 대표로 선택할 수 있다. **크롤링됨, 색인에 저장됨, 특정 검색어에서 상위에 나옴은 서로 다른 상태**다.
+예를 들어 같은 글이 `/posts/cache/`, 추적 파라미터가 붙은 URL, 다른 카테고리 경로에서 각각 보인다면 사용자는 세 페이지를 열 수 있어도 검색엔진은 하나를 대표로 선택할 수 있다. **크롤링, 색인 저장, 상위 노출은 서로 다른 상태**다.
 
 `canonical`은 선호하는 대표 URL을 알리는 신호다. 강제 명령으로 생각하면 안 된다. 내부 링크와 사이트맵도 같은 대표 URL을 가리키게 정리하면 의도를 전달하기 쉬워진다. [Google의 canonical 선택 가이드](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)를 참고할 수 있다.
 
@@ -48,7 +48,7 @@ last_modified_at: 2026-09-12 13:38:07 +0900
 
 현재 검색을 이 알고리즘 하나로 설명할 수는 없다. Google은 PageRank가 발전한 형태로 계속 사용되며, 관련성·신선도 등 여러 시스템을 함께 사용한다고 공개한다.
 
-신선도도 모든 글에 같은 방식으로 적용되는 것은 아니다. 오늘의 환율과 TCP 원리를 찾는 질문은 최신 정보의 중요도가 다를 것이다. [검색 순위 시스템 가이드](https://developers.google.com/search/docs/appearance/ranking-systems-guide)는 공개된 범위를 확인하는 자료다.
+신선도도 모든 글에 같은 방식으로 적용되는 것은 아니다. 오늘의 환율과 TCP 원리를 찾는 질문은 최신 정보의 중요도가 다르다. 공개된 범위는 [검색 순위 시스템 가이드](https://developers.google.com/search/docs/appearance/ranking-systems-guide)에서 확인할 수 있다.
 
 ## SEO: 검색엔진과 독자가 글을 이해하도록 돕기
 
@@ -79,8 +79,8 @@ _Lighthouse 점수보다 어떤 병목을 찾아 고쳤는지 살펴본다._
 3. **색인에 들어갈 수 있는가?** 의도하지 않은 `noindex`, 다른 URL로 선택된 canonical, 렌더링된 본문을 확인한다.
 4. **색인에는 있는데 노출이 적은가?** 검색어와 글의 실제 내용이 맞는지, 노출·클릭 데이터가 충분히 쌓였는지 살펴본다.
 
-특히 `robots.txt`로 막으면 검색에서 완전히 사라진다고 오해하기 쉽다. Google은 방문하지 못한 URL도 외부 링크 등을 통해 알고 검색에 표시할 수 있다.
+`robots.txt`로 막으면 검색에서 완전히 사라진다고 오해하기 쉽다. Google은 방문하지 못한 URL도 외부 링크 등을 통해 알고 검색에 표시할 수 있다.
 
-색인을 막는 `noindex`를 읽게 하려면 해당 페이지에 접근할 수 있어야 하고, 비공개 정보는 인증으로 보호해야 한다. [robots.txt의 용도와 한계](https://developers.google.com/search/docs/crawling-indexing/robots/intro)에 분명히 구분되어 있다.
+색인을 막는 `noindex`를 읽게 하려면 해당 페이지에 접근할 수 있어야 하고, 비공개 정보는 인증으로 보호해야 한다. [robots.txt의 용도와 한계](https://developers.google.com/search/docs/crawling-indexing/robots/intro)에서 차단(`robots.txt`)과 색인 제외(`noindex`)의 차이를 확인할 수 있다.
 
 글을 발행한 뒤 순위가 올랐다고 방금 바꾼 제목만의 효과라고 단정할 수도 없다. 재크롤링 시점, 검색 수요, 경쟁 페이지도 함께 변하기 때문이다. **발견 문제인지, 색인 문제인지, 내용과 검색 의도의 문제인지** 구분하기만 해도 SEO 작업의 방향이 훨씬 선명해진다.

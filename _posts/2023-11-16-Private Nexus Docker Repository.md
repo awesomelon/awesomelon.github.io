@@ -69,7 +69,7 @@ docker compose exec nexus cat /nexus-data/admin.password
 ![2023-11-16-image6](2023-11-16-image6.png)
 _admin.password 파일 내용 확인_
 
-로그인 후 새로운 비밀번호를 설정한다. 초기 관리자 계정은 설정에 사용하고, CI에서 push할 계정과 배포 서버에서 pull할 계정은 별도로 만든다. Realm 활성화와 계정에 repository 권한을 부여하는 작업은 별개다.
+로그인 후 새로운 비밀번호를 설정한다. 초기 관리자 계정은 설정에 사용하고, CI에서 push할 계정과 배포 서버에서 pull할 계정은 별도로 만든다. Realm(아래에서 설정한다) 활성화와 계정에 repository 권한을 부여하는 작업은 별개다.
 
 ---
 

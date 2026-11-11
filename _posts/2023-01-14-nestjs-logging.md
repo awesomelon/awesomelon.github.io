@@ -33,7 +33,7 @@ NestJS에 Winston을 연결하고 **요청 ID·상태 코드·처리 시간**을
 npm install winston nest-winston
 ```
 
-날짜를 파일명에 넣기 위한 `moment`는 이 구성에 필요하지 않다. 설치 버전과 lockfile은 프로젝트에서 관리한다.
+날짜를 파일명에 넣기 위해 원래 예제가 쓰던 `moment`는 이 구성에 필요하지 않다. 설치 버전과 lockfile은 프로젝트에서 관리한다.
 
 다음은 로거 설정을 분리한 파일이다. 애플리케이션 로그는 info 이상, 오류 파일은 error만 기록한다. 콘솔은 `LOG_LEVEL`에 따라 상세도를 바꿀 수 있게 했다.
 
@@ -71,7 +71,7 @@ Winston 기본 레벨에서 `info`를 지정하면 `warn`, `error`도 포함된�
 
 레벨명은 `warning`이 아니라 `warn`이다. [Winston의 레벨·format·transport 문서](https://github.com/winstonjs/winston)에 이 관계가 정리되어 있다.
 
-문자열을 합쳐 한 줄로 만드는 대신 JSON 필드로 남기면 `statusCode >= 500`, 특정 `requestId` 같은 조건으로 검색할 수 있다. JSON으로 포맷해도 민감한 데이터가 자동으로 지워지지는 않으므로 기록할 필드부터 정해야 한다.
+문자열을 합쳐 한 줄로 만드는 대신 JSON 필드로 남기면 `statusCode >= 500`, 특정 `requestId` 같은 조건으로 검색할 수 있다.
 
 ## 완료 로그를 남기는 미들웨어
 

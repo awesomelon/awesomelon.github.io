@@ -45,7 +45,7 @@ curl -sS -L --max-redirs 5 -D - -o /dev/null https://argocd.example.com
 2. Ingress의 upstream 프로토콜과 Service가 가리키는 포트를 확인한다.
 3. argocd-server의 TLS 설정·로그와 Ingress access log를 같은 요청 시점으로 비교한다.
 
-브라우저 쿠키를 지우기 전에 서버 사이에서 사용하는 요청 프로토콜을 확인하면 원인 후보를 줄일 수 있다. 인증 화면 사이를 오가는 루프라면 아래 TLS 수정과 별개 문제로 봐야 한다.
+쿠키를 지우기 전에 Ingress와 argocd-server 사이의 프로토콜부터 확인하면 원인 후보를 줄일 수 있다. 인증 화면 사이를 오가는 루프라면 아래 TLS 수정과 별개 문제로 봐야 한다.
 
 ## 해결 방법: TLS 종료 위치에 맞춰 선택하기
 
@@ -84,7 +84,7 @@ kubectl -n argocd rollout status deployment argocd-server
 
 Helm이나 GitOps로 설치했다면 실제 values 또는 Git의 매니페스트에도 변경을 반영해야 다음 동기화 때 되돌아가지 않는다.
 
-`--insecure`는 여기서 **서버 자체 TLS를 끄는 옵션**이다. 브라우저와 Ingress 사이의 HTTPS는 유지되지만 Ingress와 서버 사이에는 HTTP가 흐른다. 내부 통신도 암호화해야 하는 환경이라면 두 번째 또는 세 번째 구성을 선택해야 한다.
+`--insecure`는 여기서 **서버 자체 TLS를 끄는 옵션**이다. 브라우저와 Ingress 사이의 HTTPS는 유지되지만 Ingress와 서버 사이에는 HTTP가 흐른다. 내부 통신도 암호화해야 하는 환경이라면 내부 HTTPS 재연결이나 TLS passthrough 구성을 선택해야 한다.
 
 ## 정상화는 화면 표시까지 확인하기
 
@@ -94,4 +94,4 @@ Helm이나 GitOps로 설치했다면 실제 values 또는 Git의 매니페스트
 
 문제가 해결되지 않으면 바꾼 설정을 원래 값으로 되돌리고 다시 배포한 뒤 다른 redirect 발생 지점을 조사해야 한다.
 
-당시 사례를 통해 옵션 하나를 외우기보다 **외부 HTTPS 요청이 각 구간에서 어떤 프로토콜로 바뀌는지 추적해야 한다**고 배웠다.
+이 사례에서 **외부 HTTPS 요청이 각 구간에서 어떤 프로토콜로 바뀌는지 추적해야 한다**는 점을 확인했다.
