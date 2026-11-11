@@ -66,7 +66,7 @@ docker compose logs --tail=100 portainer
 
 Portainer와 Runner는 Docker 제어 권한을 갖는다. 관리 UI와 webhook의 접근 경로를 필요한 운영자·CI로 제한하고, Agent를 추가한다면 Server와 호환되는 버전 및 접근 제한도 함께 구성해야 한다.
 
-컨테이너를 시작한 후 브라우저로 접속하면 Portainer와 연결된 환경을 볼 수 있다. 단일 Docker 호스트도 하나의 Environment이며, 모든 Environment가 클러스터를 뜻하지는 않는다.
+초기 설정을 마치면 Portainer와 연결된 환경을 볼 수 있다. 단일 Docker 호스트도 하나의 Environment이며, 모든 Environment가 클러스터를 뜻하지는 않는다.
 
 ![2023-11-24-image2](2023-11-24-image2.png)
 _Portainer 환경 목록_
@@ -96,8 +96,6 @@ _Stack 생성 화면_
 
 Portainer에서 Git을 기준으로 자동 업데이트하는 방식에는 Polling 방식(일정 시간마다 저장소 확인)과 Webhook 방식(요청을 받으면 업데이트 확인)이 있다. 여기서는 Drone에서 빌드를 마친 시점에 맞춰 Webhook 방식을 사용했다.
 
-Polling 자체를 유료 기능이라고 단정해서는 안 된다. 추가 재배포 옵션의 제공 범위는 사용하는 버전과 에디션에서 확인해야 한다.
-
 ![2023-11-24-image6](2023-11-24-image6.png)
 _자동 배포 설정_
 
@@ -110,7 +108,7 @@ Drone CI에서 Docker 빌드가 완료되면 Portainer Server의 Webhook으로 �
 ![2023-11-24-image7](2023-11-24-image7.png)
 _Drone CI 파이프라인 실행_
 
-요청을 받은 Portainer Server는 Git 저장소에서 변경을 확인해 Stack을 업데이트한다. 같은 이미지 태그에 새 이미지만 Push하면 Git 변경이 없어 배포를 건너뛸 수 있다. 이미지 태그를 갱신한 Compose 파일을 Git에 커밋하거나, 해당 버전에서 제공하는 이미지 다시 받기와 강제 재배포 옵션을 설정해야 한다.
+요청을 받은 Portainer Server는 Git 저장소에서 변경을 확인해 Stack을 업데이트한다. [Portainer의 변경 감지 설명](https://docs.portainer.io/faqs/troubleshooting/stacks-deployments-and-updates/how-do-automatic-updates-for-stacks-applications-work)에 따르면 기본 업데이트 방식은 Git 커밋을 비교한다. 그래서 같은 이미지 태그에 새 이미지만 Push하면 Git 변경이 없어 배포를 건너뛸 수 있다. 같은 태그를 꼭 유지해야 한다면 사용 버전에서 re-pull과 force redeployment를 지원하는지, 각각 어떤 조건에서 동작하는지 따로 확인한다. 태그를 바꾸는 쪽의 해법은 아래에서 다룬다.
 
 ![2023-11-24-image8](2023-11-24-image8.png)
 _Portainer 자동 배포 실행_
@@ -132,8 +130,6 @@ _Portainer 자동 배포 실행_
 이렇게 하면 webhook은 “어떤 이미지인지 모르는 최신 상태를 가져오라”가 아니라 “Git에 기록한 상태를 확인하라”는 신호가 된다. 단, 커밋 SHA로 이름 붙인 태그도 덮어쓸 수 있으므로 레지스트리의 불변 태그 정책 또는 digest가 필요하다.
 
 이 순서는 배포용 설정을 CI가 갱신하도록 **추가 구현해야 하는 보완안**이다. 아래 webhook 단계만 복사한다고 이미지 push와 Git 커밋까지 자동으로 생기지는 않는다. 애플리케이션과 배포 설정을 같은 저장소에 둔다면 CI의 설정 커밋이 다시 빌드를 촉발하지 않도록 트리거를 구분한다.
-
-[Portainer의 변경 감지 설명](https://docs.portainer.io/faqs/troubleshooting/stacks-deployments-and-updates/how-do-automatic-updates-for-stacks-applications-work)에 따르면 기본 업데이트 방식은 Git 커밋을 비교한다. 같은 태그를 꼭 유지해야 한다면 사용 버전에서 re-pull과 force redeployment를 지원하는지, 각각 어떤 조건에서 동작하는지 따로 확인한다.
 
 ## 전체 워크플로우
 
@@ -188,7 +184,9 @@ HTTP 성공 응답은 요청을 받았다는 신호일 뿐, 새 컨테이너가 
 
 Portainer는 웹 UI가 직관적이고 Drone에서 빌드를 마친 뒤 Webhook으로 배포를 연결할 수 있어 좋았다. 다만 자동 업데이트의 변경 감지 조건과 사용 버전의 기능 범위를 먼저 확인해야 한다.
 
-개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었다. Kubernetes에서 상태를 지속해서 조정해야 한다면 Argo CD나 Flux를 별도로 검토할 수 있지만, 이 단일 Docker 환경의 구성에 바로 바꿔 끼우는 도구는 아니다.
+개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었다.
+
+Kubernetes에서 상태를 지속해서 조정해야 한다면 Argo CD나 Flux를 별도로 검토할 수 있지만, 이 단일 Docker 환경의 구성에 바로 바꿔 끼우는 도구는 아니다.
 
 ## 참고 자료
 

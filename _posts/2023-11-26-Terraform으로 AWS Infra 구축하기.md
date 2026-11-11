@@ -18,13 +18,14 @@ IaC(Infrastructure as Code)는 콘솔에서 수동으로 인프라를 만드는 
 
 **생성할 리소스:** EC2와 Security Group, Target Group·attachment, ALB listener rule, Route53 alias record.
 
-**미리 준비할 리소스:** 같은 리전의 VPC·서브넷·키 페어, 해당 VPC의 internet-facing ALB, 대상 도메인을 포함하는 인증서가 연결된 HTTPS 443 listener, 올바르게 위임된 public Route53 Hosted Zone이 필요하다. listener priority는 기존 규칙과 겹치지 않아야 한다.
+**미리 준비할 리소스:** 같은 리전의 VPC·서브넷·키 페어, 해당 VPC의 internet-facing ALB, 대상 도메인을 포함하는 인증서가 연결된 HTTPS 443 listener, 올바르게 위임된 public Route53 Hosted Zone이 있어야 한다. listener priority는 기존 규칙과 겹치지 않아야 한다.
 
-EC2를 배치할 서브넷이 속한 가용 영역(AZ)은 기존 ALB에서 활성화된 영역이어야 한다. 같은 VPC여도 이 조건이 맞지 않으면 대상 등록 후 `Target.NotInUse` 상태가 되어 트래픽을 받지 못할 수 있다. [AWS의 대상 상태 설명](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/check-target-health.html)을 함께 확인한다.
+**사전 조건**
 
-EC2에 애플리케이션을 설치·실행하는 과정은 포함하지 않는다. 준비된 AMI를 사용하거나 별도로 구성하고, target port와 `/health`가 응답하도록 해야 한다.
-
-EC2에 SSH로 접속하려면 VPN·bastion 등 해당 서브넷으로 접근할 수 있는 경로가 필요하다. 이 구성은 단일 EC2를 사용하므로 장애 시에도 계속 서비스를 제공하는 고가용성 구성은 아니다.
+- EC2를 배치할 서브넷이 속한 가용 영역(AZ)은 기존 ALB에서 활성화된 영역이어야 한다. 같은 VPC여도 이 조건이 맞지 않으면 대상 등록 후 `Target.NotInUse` 상태가 되어 트래픽을 받지 못할 수 있다. [AWS의 대상 상태 설명](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/check-target-health.html)을 함께 확인한다.
+- EC2에 애플리케이션을 설치·실행하는 과정은 포함하지 않는다. 준비된 AMI를 사용하거나 별도로 구성하고, target port와 `/health`가 응답하도록 해야 한다.
+- EC2에 SSH로 접속하려면 VPN·bastion 등 해당 서브넷으로 접근할 수 있는 경로가 필요하다.
+- 이 구성은 단일 EC2를 사용하므로 장애 시에도 계속 서비스를 제공하는 고가용성 구성은 아니다.
 
 리소스를 한 개씩 `apply`하는 대신 파일을 모두 작성하고 전체 plan을 확인한다. Terraform은 파일에 적힌 순서가 아니라 참조 관계로 의존성을 계산한다.
 
@@ -129,7 +130,7 @@ resource "aws_security_group" "sg" {
 }
 ```
 
-ALB의 보안 그룹도 타겟 포트로 나가는 트래픽을 허용해야 한다. 타겟 포트에서 애플리케이션이 실행되고 헬스 체크에 응답해야 정상 서비스를 제공할 수 있다. 위 예시에는 EC2의 아웃바운드 규칙이 없으므로 패키지 다운로드나 외부 API 접속이 필요하다면 egress 규칙을 별도로 추가한다.
+ALB의 보안 그룹도 타겟 포트로 나가는 트래픽을 허용해야 한다. 위 예시에는 EC2의 아웃바운드 규칙이 없으므로 패키지 다운로드나 외부 API 접속이 필요하다면 egress 규칙을 별도로 추가한다.
 
 실제 plan과 apply는 아래 파일과 변수를 모두 준비한 뒤 마지막 실행 절차에서 진행한다.
 
@@ -167,7 +168,7 @@ _Terraform Console에서 리소스 정보 확인_
 
 ---
 
-## Target Group 생성
+## 변수 정의
 
 variables.tf에 변수를 정의한다.
 
@@ -228,6 +229,10 @@ variable "listener_priority" {
   }
 }
 ```
+
+---
+
+## Target Group 생성
 
 main.tf에 Target Group 리소스를 추가한다.
 
@@ -395,17 +400,21 @@ terraform {
 }
 ```
 
+backend 예시는 선택 사항이며, 최초 실습 후 추가한다면 init으로 다시 초기화해야 한다.
+
 2026년 확인한 [S3 backend 문서](https://developer.hashicorp.com/terraform/language/backend/s3)는 DynamoDB 잠금을 deprecated로 안내하고 S3 lockfile을 지원한다. 새로 구성할 때는 사용하는 CLI가 `use_lockfile = true`를 지원하는지 확인한 뒤 그 방식을 검토한다. 이 옵션을 1.6.4 설정에 그대로 추가하면 안 된다.
 
 S3 버킷의 versioning, 암호화, 제한된 접근 권한을 구성하고 state 복구 방법도 정해둔다. lockfile 방식에서는 state 객체뿐 아니라 `.tflock` 객체의 읽기·쓰기·삭제 권한이 필요하다.
 
-기존 backend를 바꿀 때는 먼저 state를 백업하고 팀에서 다른 Terraform 작업을 실행하지 않도록 조율한다. 그다음 `terraform init -migrate-state`로 이전한다. 이 글의 실습 리소스와 state 저장소는 생명주기를 분리해 두는 편이 좋다.
+기존 backend를 바꿀 때는 먼저 state를 백업하고 팀에서 다른 Terraform 작업을 실행하지 않도록 조율한다. 그다음 `terraform init -migrate-state`로 이전한다.
+
+이 글의 실습 리소스와 state 저장소는 생명주기를 분리해 두는 편이 좋다.
 
 환경을 정리할 때도 state의 관리 범위를 먼저 확인한다. 여기서 data source로 참조한 기존 ALB·VPC·Hosted Zone은 Terraform이 새로 만든 리소스와 다르다. 삭제 계획을 검토한 뒤 필요한 경우에만 `terraform destroy`를 실행한다.
 
 코드로 인프라를 관리하면 구성을 다시 읽고 변경을 비교할 수 있다. 그 장점을 유지하려면 리소스 코드뿐 아니라 **실행 버전, 실제 입력값, state, 애플리케이션 검증**까지 함께 관리해야 한다.
 
-당시 예제 저장소는 [simple-aws-terraform](https://github.com/awesomelon/simple-aws-terraform)이다. 외부 저장소의 코드와 이번에 보완한 본문 예시는 다를 수 있다. 본문은 `provider.tf`·`main.tf`·`variables.tf`·`terraform.tfvars`를 구분해 같은 디렉터리에 저장하는 구성을 기준으로 읽으면 된다. backend 예시는 선택 사항이며, 최초 실습 후 추가한다면 init으로 다시 초기화해야 한다.
+당시 예제 저장소는 [simple-aws-terraform](https://github.com/awesomelon/simple-aws-terraform)이다. 외부 저장소의 코드와 이번에 보완한 본문 예시는 다를 수 있다. 본문은 `provider.tf`·`main.tf`·`variables.tf`·`terraform.tfvars`를 구분해 같은 디렉터리에 저장하는 구성을 기준으로 읽으면 된다.
 
 ## 참고 자료
 
