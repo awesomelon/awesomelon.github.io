@@ -14,12 +14,12 @@ Kafka를 로컬에 띄우고 NestJS에서 메시지를 보내고 받는 흐름�
 ![Apache Kafka](2023-05-20-image1.jpg)
 _Apache Kafka_
 
-> 설치 부분은 2023년 당시 사용한 Kafka 2.8.0 + ZooKeeper 구성을 재현하는 로컬 학습 예제입니다. Kafka 4.0부터는 ZooKeeper 모드가 제거됐으므로 신규 환경에서는 해당 버전의 KRaft 설치 문서를 사용하세요. 아래 코드는 KafkaJS 2.2.4, NestJS 11.1.6, TypeScript 5.9.3 조합에서 6개 파일 전체의 strict 타입 검사를 통과했습니다. 실제 Broker를 연결한 통합 검증과 운영용 클러스터 설정은 포함하지 않습니다. [Kafka 4.0 변경 사항](https://kafka.apache.org/40/getting-started/upgrade/)
+> 설치 부분은 2023년에 사용한 Kafka 2.8.0 + ZooKeeper 구성을 기준으로 한 로컬 학습 예제다. [Kafka 4.0](https://kafka.apache.org/40/getting-started/upgrade/)부터는 ZooKeeper 모드가 제거됐으므로, 새 환경에 도입한다면 KRaft 설치 문서를 참고하는 편이 좋다.
 {: .prompt-info }
 
 ## 1. 로컬 Kafka 준비
 
-Kafka 2.8의 안내는 Java 8 이상을 전제로 한다. 해당 버전을 재현할 호환 JDK를 준비하고 `java -version`으로 실제 사용 중인 버전을 확인해야 한다. 이 글이 최신 JDK와의 호환성까지 보장하지는 않는다. [Kafka 2.8 Quick Start](https://kafka.apache.org/28/getting-started/quickstart/)
+[Kafka 2.8 Quick Start](https://kafka.apache.org/28/getting-started/quickstart/)는 Java 8 이상을 전제로 한다. 버전에 맞는 호환 JDK를 준비한 뒤 `java -version`으로 실제 실행 버전을 확인해 두자.
 
 ```bash
 wget https://archive.apache.org/dist/kafka/2.8.0/kafka_2.13-2.8.0.tgz
@@ -27,14 +27,14 @@ tar xvf kafka_2.13-2.8.0.tgz
 cd kafka_2.13-2.8.0
 ```
 
-실습은 같은 머신의 `localhost:9092`를 사용한다. 외부에 노출하는 서버 설정으로 그대로 사용해서는 안 된다. `config/server.properties`에 아래 항목이 있다면 값을 바꾸고 없으면 추가해 로컬 주소를 명시한다.
+실습은 같은 머신의 `localhost:9092`만 열어 두고 진행하는 로컬 구성이다. 운영 서버에는 그대로 쓰지 않도록 주의하고, `config/server.properties`에 아래 항목이 있다면 값을 바꾸고 없으면 추가해 로컬 주소를 명시한다.
 
 ```properties
 listeners=PLAINTEXT://127.0.0.1:9092
 advertised.listeners=PLAINTEXT://localhost:9092
 ```
 
-`listeners`는 Broker가 연결을 받을 주소이고, `advertised.listeners`는 클라이언트에 알려줄 주소다. Docker 안의 애플리케이션은 `localhost`가 호스트 머신을 뜻하지 않으므로 그 경우에는 별도 네트워크 구성이 필요하다. [Kafka 2.8 Broker 설정](https://kafka.apache.org/28/configuration/broker-configs/)
+`listeners`는 Broker가 연결을 받을 주소이고, `advertised.listeners`는 클라이언트에 알려줄 주소다. Docker 안의 애플리케이션은 `localhost`가 호스트 머신을 뜻하지 않으므로, [Kafka 2.8 Broker 설정](https://kafka.apache.org/28/configuration/broker-configs/)을 참고해 별도로 네트워크 구성을 잡아야 한다.
 
 ### ZooKeeper와 Broker 실행
 
@@ -46,9 +46,9 @@ bin/kafka-server-start.sh -daemon config/server.properties
 ZooKeeper는 이 과거 구성에서 클러스터 메타데이터 등을 관리한다. KafkaJS 애플리케이션이 메시지를 주고받는 대상은 Kafka Broker다.
 
 ![당시 ZooKeeper 구성 자료](2023-05-20-image3.png)
-_Kafka 2.8의 ZooKeeper 기반 구성을 이해하기 위한 당시 자료_
+_Kafka 2.8의 ZooKeeper 기반 구성도_
 
-명령이 반환되어도 준비가 끝났다고 볼 수는 없다. 아래 Topic 생성 요청이 성공하는지 확인하고, 실패하면 Kafka의 `logs/server.log`부터 살펴본다.
+명령이 반환되더라도 브로커가 곧바로 준비됐다고 보기는 어렵다. 아래 Topic 생성 요청이 성공하는지 확인하고, 실패하면 Kafka의 `logs/server.log`부터 살펴본다.
 
 ```bash
 bin/kafka-topics.sh --create \
@@ -62,7 +62,7 @@ bin/kafka-topics.sh --describe \
   --bootstrap-server localhost:9092
 ```
 
-Partition 하나와 복제본 하나는 실습을 단순하게 하기 위한 선택이다. 이 구성으로 장애 복구나 고가용성을 검증할 수는 없다. 이미 같은 Topic이 있다면 새로 만들지 말고 `--describe`로 설정을 확인한다.
+Partition과 복제본을 하나씩만 둔 것은 실습을 간단하게 유지하기 위해서다. 이미 같은 Topic이 있다면 새로 만들지 말고 `--describe`로 설정을 확인한다.
 
 ### NestJS 전에 CLI로 통신 확인
 
@@ -91,15 +91,15 @@ _당시 CLI Consumer 테스트 화면_
 
 ## 2. NestJS에서 연결의 생명주기 관리하기
 
-기존 TypeScript NestJS 프로젝트에서 KafkaJS를 설치한다. 프로젝트가 사용하는 패키지 매니저 하나만 사용하면 된다.
+기존 TypeScript NestJS 프로젝트에 KafkaJS를 설치한다.
 
 ```bash
 npm install kafkajs@2.2.4
 ```
 
-아래 예제는 기본 NestJS 프로젝트의 `src`에 파일을 둔다는 가정이다. Topic과 handler 하나를 등록하는 학습용 구조다.
+아래 예제는 기본 NestJS 프로젝트의 `src`에 파일을 둔다는 가정으로, Topic과 handler 하나를 등록하는 학습용 구조다.
 
-메시지마다 연결을 열고 닫지 않고 **모듈 초기화 때 연결하고, 애플리케이션이 준비된 뒤 구독을 시작하고, 종료 때 연결을 닫는다.** [NestJS 생명주기 훅](https://docs.nestjs.com/fundamentals/lifecycle-events)
+메시지마다 연결을 열고 닫는 대신 [NestJS 생명주기 훅](https://docs.nestjs.com/fundamentals/lifecycle-events)을 이용해 **모듈 초기화 때 연결하고, 애플리케이션이 준비된 뒤 구독을 시작하고, 종료 때 연결을 닫는다.**
 
 ### `kafka.service.ts`
 
@@ -154,7 +154,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       await this.producer.connect();
       await this.consumer.connect();
     } catch (error) {
-      // 초기 연결이 일부만 성공했더라도 열린 연결을 정리합니다.
+      // 초기 연결이 일부만 성공했더라도 열린 연결을 정리한다.
       await Promise.allSettled([
         this.consumer.disconnect(),
         this.producer.disconnect(),
@@ -196,11 +196,11 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
 자동 Topic 생성을 끈 이유는 이름 오타로 별도 Topic이 생겨 송수신이 엇갈리는 문제를 피하기 위해서다. Topic은 앞에서 명시적으로 만들었다.
 
-`acks: -1`은 현재 ISR의 확인을 기다리는 설정이며 Consumer의 처리가 끝났다는 뜻은 아니다. 복제본이 하나인 이 실습에서는 복제를 통한 내구성도 얻지 못한다. [KafkaJS Producer 설정](https://kafka.js.org/docs/producing)
+[KafkaJS Producer 설정](https://kafka.js.org/docs/producing)에서 `acks: -1`은 현재 ISR의 확인을 기다린다는 뜻이지 Consumer 처리까지 끝났다는 의미는 아니다. 또 이 실습은 복제본이 하나뿐이라 복제를 통한 내구성은 얻지 못한다.
 
 ### `kafka.module.ts`
 
-인터페이스는 런타임에 사라지므로 설정 객체를 주입할 때는 별도 토큰을 사용한다. 모듈에서 그 토큰과 실제 값을 연결한다. [NestJS custom provider](https://docs.nestjs.com/fundamentals/custom-providers)
+인터페이스는 런타임에 사라지므로 [NestJS custom provider](https://docs.nestjs.com/fundamentals/custom-providers) 방식으로 별도 토큰을 정의해 설정 객체와 연결한다.
 
 ```typescript
 import { DynamicModule, Module } from '@nestjs/common';
@@ -242,7 +242,7 @@ export class AppService implements OnApplicationBootstrap {
         key: message.key?.toString() ?? null,
         value: message.value?.toString() ?? null,
       });
-      // 실제 업무 처리도 이 handler 안에서 await 해야 합니다.
+      // 실제 업무 처리도 이 handler 안에서 await 해야 한다.
     });
   }
 
@@ -253,13 +253,13 @@ export class AppService implements OnApplicationBootstrap {
 }
 ```
 
-`fromBeginning: true`는 **해당 그룹의 유효한 commit offset이 없을 때** 보관된 가장 이른 위치부터 읽는 옵션이다. 같은 그룹으로 재시작할 때마다 모든 메시지를 다시 읽는다는 뜻은 아니다.
+`fromBeginning: true`는 **해당 그룹의 유효한 commit offset이 없을 때** 보관된 가장 이른 위치부터 읽는 옵션이다. 같은 그룹으로 재시작할 때마다 모든 메시지를 다시 읽지는 않는다.
 
-또한 `eachMessage`의 자동 offset 관리는 handler가 업무를 실제로 마쳤다는 전제가 필요하다. 비동기 업무를 `await`하지 않거나 오류를 삼키고 정상 반환하면 실패한 처리를 성공으로 취급할 수 있다. [KafkaJS Consumer와 offset 설명](https://kafka.js.org/docs/consuming)
+또한 [KafkaJS Consumer와 offset 설명](https://kafka.js.org/docs/consuming)대로 `eachMessage`의 자동 offset 관리는 handler가 업무를 실제로 마쳤다는 전제가 필요하다. 비동기 업무를 `await`하지 않거나 오류를 삼키고 정상 반환하면 실패한 처리를 성공으로 취급할 수 있다.
 
 ### `app.controller.ts`
 
-실행 경로가 빠지지 않도록 고정된 실습 메시지를 발행하는 HTTP endpoint를 추가한다. 사용자 입력이나 임의의 Topic을 받는 운영 API는 아니다.
+동작 확인용으로 고정된 테스트 메시지를 발행하는 HTTP endpoint를 하나 추가한다.
 
 ```typescript
 import { Controller, Post } from '@nestjs/common';
@@ -317,7 +317,7 @@ bootstrap().catch((error) => {
 });
 ```
 
-`enableShutdownHooks()`는 프로세스 종료 신호에서 Nest 종료 훅이 실행되도록 한다. `SIGKILL`처럼 정리 기회를 주지 않는 종료까지 처리해 주지는 않는다. [Nest 종료 훅](https://docs.nestjs.com/fundamentals/lifecycle-events)
+[Nest 종료 훅](https://docs.nestjs.com/fundamentals/lifecycle-events)을 켜는 `enableShutdownHooks()`는 프로세스 종료 신호가 들어왔을 때 Nest 종료 훅이 실행되게 한다. 다만 `SIGKILL`처럼 정리 기회를 주지 않고 프로세스를 끊는 강제 종료까지는 막지 못한다.
 
 ## 3. 발행·수신·재시작을 각각 검증하기
 
@@ -331,10 +331,10 @@ npm run start
 curl -i -X POST http://127.0.0.1:3000/messages
 ```
 
-[Nest의 기본 POST 응답 상태](https://docs.nestjs.com/controllers#status-code)는 201이며 본문에는 `{"published":true}`가 반환된다. 이는 Broker의 발행 확인일 뿐 Consumer의 처리 성공은 아니다. 애플리케이션 로그에서 `Hello World!`와 topic, partition, offset이 출력되는지도 따로 확인한다.
+[Nest의 기본 POST 응답 상태](https://docs.nestjs.com/controllers#status-code)인 201과 `{"published":true}` 응답은 Broker의 발행 확인일 뿐 Consumer의 처리 성공은 아니다. 애플리케이션 로그에서 `Hello World!`와 topic, partition, offset이 출력되는지도 이어서 확인한다.
 
 ![당시 NestJS Producer 테스트](2023-05-20-gif1.gif)
-_2023년에 기록한 발행 테스트 화면. 개정한 코드의 새로운 실행 결과는 아님_
+_2023년에 기록한 발행 테스트 화면_
 
 다음 명령으로 그룹의 commit 위치와 lag를 확인할 수 있다. Kafka 배포 디렉터리에서 실행한다.
 
@@ -354,7 +354,7 @@ bin/kafka-consumer-groups.sh \
 ![당시 NestJS Consumer 테스트](2023-05-20-gif2.gif)
 _2023년에 기록한 구독 테스트 화면_
 
-처리 성공 직후 commit 전에 프로세스가 죽으면 같은 이벤트가 다시 전달될 수 있다. 따라서 실제 DB 변경을 넣을 때는 이벤트 ID 등을 이용한 멱등성 설계를 추가해야 한다. 위 로그 출력 예제는 exactly-once 처리를 구현하지 않는다.
+처리 성공 직후 commit 전에 프로세스가 죽으면 같은 이벤트가 다시 전달될 수 있다. 따라서 실제 DB 변경을 넣을 때는 이벤트 ID 등으로 멱등성을 함께 챙겨야 한다. 이 실습 예제에서는 중복 전달까지 막는 exactly-once 처리를 다루지 않는다.
 
 ## 연결은 되는데 처리가 안 될 때
 
@@ -366,7 +366,7 @@ _2023년에 기록한 구독 테스트 화면_
 | 처리 중 rebalance가 반복됨 | handler 소요 시간과 session timeout, heartbeat 처리 |
 | 특정 메시지에서 계속 실패함 | payload와 업무 오류, 재시도·실패 격리 정책 및 Consumer crash 로그 |
 
-긴 작업에서는 `eachMessage`가 session timeout을 넘기지 않도록 heartbeat와 처리 전략을 검토해야 한다. 오류를 throw해도 원하는 횟수만큼 재시도되리라는 보장은 없으므로 KafkaJS의 재시작 동작과 애플리케이션의 실패 처리를 구분해야 한다. [KafkaJS Consumer 제약](https://kafka.js.org/docs/consuming)
+긴 작업에서는 `eachMessage`가 session timeout을 넘기지 않도록 heartbeat와 처리 전략을 함께 살펴야 한다. 오류를 throw해도 원하는 횟수만큼 재시도된다고 보기는 어려우므로, [KafkaJS Consumer 제약](https://kafka.js.org/docs/consuming)을 참고해 재시작 동작과 애플리케이션의 실패 처리를 나눠 다루는 편이 안전하다.
 
 실습을 끝내면 Nest 앱을 종료하고 로컬 Broker, ZooKeeper 순서로 정리한다.
 
@@ -375,4 +375,4 @@ bin/kafka-server-stop.sh
 bin/zookeeper-server-stop.sh
 ```
 
-이 예제의 목표는 “Hello World가 출력됐다”는 확인을 넘어 **연결·발행 확인·업무 처리·commit이 서로 다른 단계임을 이해하는 데** 있다. 이 경계를 구분해야 운영 코드에서 누락과 중복을 어디서 다룰지도 정할 수 있다.
+"Hello World가 출력됐다"는 확인에서 한 걸음 더 나아가, **연결·발행 확인·업무 처리·commit이 서로 다른 단계**라는 점을 짚고 넘어가면 운영 코드에서 누락과 중복을 어디서 다뤄야 할지 기준을 잡기 쉬워진다.

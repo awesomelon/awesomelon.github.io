@@ -6,17 +6,17 @@ categories: [ENGINEERING, DEVOPS, CI/CD]
 tags: [portainer, drone, ci/cd, docker, docker swarm, gitops]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Drone CI로 이미지를 빌드하고 Portainer로 배포하는 GitOps 방식 CI/CD 파이프라인을 정리합니다.
+description: Drone CI로 이미지를 빌드하고 Portainer로 배포하는 GitOps 방식 CI/CD 파이프라인을 정리했다.
 ---
 
-> 관련 내용을 다룬 [Drone CI](/posts/Drone-CI-for-Bitbucket/) 글도 함께 읽어보시기를 추천합니다.
+> 관련 내용을 다룬 [Drone CI](/posts/Drone-CI-for-Bitbucket/) 글도 함께 읽어보면 흐름을 잡기 좋다.
 {: .prompt-info }
 
 ---
 
 빌드한 이미지와 실제 서비스에서 실행 중인 이미지가 다르면 CI가 초록색이어도 배포에 성공했다고 할 수 없다. 이 글에서는 Drone에서 이미지 빌드·push를 마치면 Portainer가 Stack을 업데이트하도록 연결하고, 그 사이에서 변경을 놓치지 않는 방법을 정리한다.
 
-> 화면은 2023년 구축 당시의 기록입니다. 설치·예시는 2026년 문서를 참고해 보완했습니다. Docker Standalone 기준이며, Swarm의 무중단 업데이트 설정이나 Kubernetes 배포를 그대로 설명하는 예시는 아닙니다.
+> 화면은 2023년 구축 당시의 기록이고, 설치·파이프라인 예시는 변경된 문서를 반영해 다듬었다. Docker Standalone 환경 기준이며, Swarm의 무중단 업데이트 설정이나 Kubernetes 배포까지 다루는 예시는 아니다.
 {: .prompt-info }
 
 ## Portainer란?
@@ -60,13 +60,13 @@ docker compose logs --tail=100 portainer
 
 같은 호스트에서 `https://localhost:9443`으로 접속한다. 원격에서 관리할 때는 관리망에 있는 TLS 프록시나 SSH 터널을 사용하고, 초기 관리자 설정을 완료한다. 현재 버전에서 setup token을 요구하면 설치 문서의 초기 설정 절차를 따른다.
 
-기본 9443 인증서는 자체 서명 인증서다. CI의 webhook 호출에 사용하려면 신뢰할 수 있는 인증서 또는 private CA 신뢰 구성이 필요하다. `curl -k`로 검증을 건너뛰는 방법은 배포 예시에 넣지 않는다.
+기본 9443 인증서는 자체 서명 방식이므로 CI의 webhook 호출에 사용하려면 신뢰할 수 있는 인증서나 private CA 신뢰 구성이 필요하다.
 
 레거시 HTTP 9000과 Edge Agent용 8000은 이 구성에 필요하지 않아 공개하지 않았다.
 
 Portainer와 Runner는 Docker 제어 권한을 갖는다. 관리 UI와 webhook의 접근 경로를 필요한 운영자·CI로 제한하고, Agent를 추가한다면 Server와 호환되는 버전 및 접근 제한도 함께 구성해야 한다.
 
-초기 설정을 마치면 Portainer와 연결된 환경을 볼 수 있다. 단일 Docker 호스트도 하나의 Environment이며, 모든 Environment가 클러스터를 뜻하지는 않는다.
+초기 설정을 마치면 Portainer에 연결된 환경 목록을 볼 수 있다. 단일 Docker 호스트도 하나의 Environment로 등록된다.
 
 ![2023-11-24-image2](2023-11-24-image2.png)
 _Portainer 환경 목록_
@@ -78,7 +78,7 @@ _Docker 환경 대시보드_
 
 ## Stack 생성 및 GitOps 설정
 
-Portainer에서 Stack은 Compose 파일 등으로 함께 정의하고 배포하는 서비스 묶음이다. 단순히 실행 중인 컨테이너 여러 개를 모두 하나의 Stack이라고 부르지는 않는다.
+Portainer에서 Stack은 Compose 파일 등으로 함께 정의하고 배포하는 서비스 묶음을 가리킨다.
 
 Add Stack 버튼을 클릭하고 Stack 정보를 입력한다.
 
@@ -91,7 +91,7 @@ _Stack 생성 화면_
 - **Repository reference / Compose path**: 배포할 브랜치와 저장소 루트 기준 Compose 파일 경로
 - **저장소 인증**: 사용하는 Git provider와 Portainer 버전에 맞는 읽기 권한이 있는 인증 정보
 
-> Git 저장소의 Compose 파일을 기준으로 자동 업데이트하려면 Git Repository 방식을 선택합니다. 2026년 확인한 문서는 일반적인 **Stack Webhook**을 Business Edition 기능으로 안내합니다. 이를 Git Repository의 **GitOps updates**와 같은 기능으로 보고 CE에서 모든 webhook을 쓸 수 있다고 가정하지 않습니다. 설치 버전·에디션의 GitOps 설정 화면에서 사용 가능한 방식을 확인합니다.
+> Git 저장소의 Compose 파일을 기준으로 자동 업데이트하려면 Git Repository 방식을 선택한다. 문서상 일반적인 **Stack Webhook**은 Business Edition 기능으로 안내되므로, Git Repository의 **GitOps updates**와 혼동하지 않도록 사용 중인 버전·에디션의 GitOps 설정 화면에서 지원 방식을 확인하자.
 {: .prompt-warning }
 
 Portainer에서 Git을 기준으로 자동 업데이트하는 방식에는 Polling 방식(일정 시간마다 저장소 확인)과 Webhook 방식(요청을 받으면 업데이트 확인)이 있다. 여기서는 Drone에서 빌드를 마친 시점에 맞춰 Webhook 방식을 사용했다.
@@ -129,7 +129,7 @@ _Portainer 자동 배포 실행_
 
 이렇게 하면 webhook은 “어떤 이미지인지 모르는 최신 상태를 가져오라”가 아니라 “Git에 기록한 상태를 확인하라”는 신호가 된다. 단, 커밋 SHA로 이름 붙인 태그도 덮어쓸 수 있으므로 레지스트리의 불변 태그 정책 또는 digest가 필요하다.
 
-이 순서는 배포용 설정을 CI가 갱신하도록 **추가 구현해야 하는 보완안**이다. 아래 webhook 단계만 복사한다고 이미지 push와 Git 커밋까지 자동으로 생기지는 않는다. 애플리케이션과 배포 설정을 같은 저장소에 둔다면 CI의 설정 커밋이 다시 빌드를 촉발하지 않도록 트리거를 구분한다.
+이 순서는 CI가 배포용 설정까지 갱신하도록 별도로 붙여야 하는 흐름이다. 아래 webhook 단계만 추가한다고 이미지 push와 Git 커밋까지 자동으로 생기지는 않는다. 애플리케이션과 배포 설정을 같은 저장소에 둔다면 CI의 설정 커밋이 다시 빌드를 촉발하지 않도록 트리거를 구분한다.
 
 ## 전체 워크플로우
 
@@ -146,7 +146,7 @@ _Portainer 자동 배포 실행_
 
 Portainer의 **선택한 Stack에 대한 GitOps 설정**에서 복사한 전체 URL을 Drone Secret `portainer_webhook_url`에 등록한다. Stack·서비스·GitOps webhook을 섞어 URL을 직접 조합하지 않는다. URL 자체에 실행 권한이 있으므로 비밀로 취급하고 코드와 로그에 노출하지 않는다.
 
-다음은 이미지 push와 배포 설정 커밋이 **이미 성공한 파이프라인의 마지막 step**에 추가할 조각이다. curl 컨테이너 버전은 보완 시점의 [공식 릴리스](https://github.com/curl/curl-container/releases/tag/8.22.0)를 명시했다.
+다음은 이미지 push와 배포 설정 커밋이 **이미 성공한 파이프라인의 마지막 step**에 추가할 조각이다. curl 컨테이너 버전은 [공식 릴리스](https://github.com/curl/curl-container/releases/tag/8.22.0)를 기준으로 적었다.
 
 ```yaml
 - name: deploy
@@ -170,30 +170,29 @@ Portainer의 **선택한 Stack에 대한 GitOps 설정**에서 복사한 전체 
 
 ## webhook 성공과 배포 성공 구분하기
 
-HTTP 성공 응답은 요청을 받았다는 신호일 뿐, 새 컨테이너가 정상 서비스를 제공한다는 보장은 아니다. Registry 접근 실패, 잘못된 Compose 경로, 애플리케이션 기동 실패가 그 뒤에 발생할 수 있다.
+HTTP 성공 응답은 요청을 받았다는 신호일 뿐, 새 컨테이너가 정상 서비스를 제공하고 있다는 뜻은 아니다. Registry 접근 실패, 잘못된 Compose 경로, 애플리케이션 기동 실패가 그 뒤에 발생할 수 있다.
 
-배포 후에는 Portainer에서 Stack의 이벤트와 컨테이너 상태를 확인하고, 실행 이미지가 의도한 digest인지 비교한다. 서비스의 읽기 전용 상태 확인 URL과 대표 사용자 요청도 점검한다. Docker의 `running` 상태만으로 애플리케이션 준비가 끝났다고 판단하지 않는다.
+배포 후에는 Portainer에서 Stack의 이벤트와 컨테이너 상태를 확인하고, 실행 이미지가 의도한 digest인지 비교한다. 서비스의 읽기 전용 상태 확인 URL과 대표 사용자 요청도 점검해야 한다. Docker에서 `running` 상태가 됐다고 앱 준비까지 끝났다고 보기는 어렵다.
 
 실패하면 이전 배포 설정 커밋이 가리키는 이미지로 되돌린 뒤 같은 검증을 반복한다. 이때 이전 이미지가 Registry에 남아 있어야 하며, DB 스키마를 변경한 배포는 코드 롤백만으로 복구되지 않을 수 있다.
 
 두 빌드가 동시에 끝날 때 오래된 빌드가 나중에 배포되어 최신 배포를 덮어쓰지 않도록 환경별 배포를 직렬화할 필요도 있다.
 
-현재 예시는 단일 호스트이므로 무중단이나 고가용성을 보장하지 않는다. **CI 성공 → 업데이트 요청 성공 → 서비스 정상**의 세 결과를 구분해 관찰할 수 있을 때 자동 배포를 운영할 수 있다.
+현재 예시는 단일 호스트 구성이라 무중단이나 고가용성까지 기대하기는 어렵다. **CI 성공 → 업데이트 요청 성공 → 서비스 정상**의 세 단계를 나눠 살펴볼 수 있을 때 자동 배포도 안정적으로 운영할 수 있다.
 
 ## 정리
 
-Portainer는 웹 UI가 직관적이고 Drone에서 빌드를 마친 뒤 Webhook으로 배포를 연결할 수 있어 좋았다. 다만 자동 업데이트의 변경 감지 조건과 사용 버전의 기능 범위를 먼저 확인해야 한다.
+Portainer는 웹 UI가 직관적이고 Drone에서 빌드를 마친 뒤 Webhook으로 배포를 연결할 수 있어 좋았다. 다만 자동 업데이트의 변경 감지 조건과 사용 버전의 기능 범위는 먼저 확인해 두어야 한다.
 
 개인적으로 Jenkins보다 Drone CI의 파이프라인 파일이 훨씬 깔끔해서 마음에 들었다.
 
-Kubernetes에서 상태를 지속해서 조정해야 한다면 Argo CD나 Flux를 별도로 검토할 수 있지만, 이 단일 Docker 환경의 구성에 바로 바꿔 끼우는 도구는 아니다.
+물론 Kubernetes에서 상태를 계속 맞춰야 한다면 Argo CD나 Flux를 검토하는 편이 맞겠지만, 단일 Docker 호스트에 가볍게 자동 배포를 붙일 때는 이 조합이 손이 덜 간다.
 
 ## 참고 자료
 
 - [Docker: Compose 네트워크와 서비스 이름](https://docs.docker.com/compose/how-tos/networking/)
 - [Portainer: Stack 생성과 GitOps 업데이트](https://docs.portainer.io/user/docker/stacks/add)
 - [Portainer: Stack Webhook](https://docs.portainer.io/user/docker/stacks/webhooks)
-
 - [Portainer: CE의 Docker 설치](https://docs.portainer.io/start/install-ce/server/docker/linux)
 - [Portainer: 자동 업데이트의 변경 감지](https://docs.portainer.io/faqs/troubleshooting/stacks-deployments-and-updates/how-do-automatic-updates-for-stacks-applications-work)
 - [Drone: branch·event·status 조건](https://docs.drone.io/pipeline/docker/syntax/conditions/)

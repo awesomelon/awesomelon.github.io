@@ -6,7 +6,7 @@ categories: [ENGINEERING, DEVOPS, Docker]
 tags: [nexus, docker, repository, registry, private registry]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Nexus로 사내 Docker Private Repository를 구축하고 설정한 과정을 정리합니다.
+description: Nexus로 사내 Docker Private Repository를 구축하고 설정한 과정을 정리했다.
 ---
 
 Docker로 애플리케이션을 배포하다 보면 빌드한 이미지를 보관할 저장소가 필요하다. 이 글에서는 Nexus로 사내 전용 Docker 이미지 저장소를 구축하는 과정을 정리한다.
@@ -18,11 +18,9 @@ _Nexus Repository Manager_
 
 ## Nexus 서버 실행
 
-아래는 Linux Docker Engine과 Compose v2에서 **외부에 공개하지 않고 Registry 동작을 확인하는 최소 실습**이다. 2023년 화면은 보존하고, 예시는 로컬 바인딩과 영속 볼륨을 사용하도록 보완했다. 원격 CI/CD에 연결할 때는 뒤에서 설명하는 TLS와 권한을 먼저 준비한다.
+아래는 Linux Docker Engine과 Compose v2에서 **외부에 공개하지 않고 Registry 동작을 확인하는 최소 실습**이다. 2023년 화면은 그대로 두되 예시는 로컬 바인딩과 영속 볼륨을 쓰도록 정리했다. 원격 CI/CD에 연결할 때는 뒤에서 설명하는 TLS와 권한부터 준비해야 한다.
 
-`.env`의 `NEXUS_IMAGE`에는 [공식 이미지](https://github.com/sonatype/docker-nexus3)의 버전 태그 또는 digest를 검토한 뒤 넣는다. 예를 들어 `NEXUS_IMAGE=sonatype/nexus3:<선택한-버전>`에서 꺾쇠 부분은 실제 게시된 태그로 바꾼다.
-
-사용할 버전의 시스템 요구사항과 업그레이드 경로도 확인해야 한다. `latest`는 실행 시점마다 달라져 예전 DB에 새 버전이 예고 없이 연결될 수 있다.
+`.env`의 `NEXUS_IMAGE`에는 [공식 이미지](https://github.com/sonatype/docker-nexus3)에서 고른 버전 태그나 digest를 넣어 준다. 사용할 버전의 시스템 요구사항과 업그레이드 경로도 확인해야 한다. `latest`는 실행 시점마다 달라져 예전 DB에 새 버전이 예고 없이 연결될 수 있다.
 
 `compose.yaml`:
 
@@ -60,7 +58,7 @@ _Nexus 웹 UI 초기 화면_
 
 ## 초기 설정
 
-로그에서 초기화 완료를 확인한 뒤 `http://localhost:8081`로 접속한다. 초기 관리자 비밀번호는 컨테이너 안의 파일에서 확인할 수 있다. 이 명령 출력과 비밀번호가 담긴 화면은 외부에 공유하지 않는다.
+로그에서 초기화 완료를 확인한 뒤 `http://localhost:8081`로 접속한다. 초기 관리자 비밀번호는 컨테이너 안 파일에서 확인할 수 있으며, 실제 운영 환경의 비밀번호 출력은 외부에 공유하지 않도록 주의한다.
 
 ```bash
 docker compose exec nexus cat /nexus-data/admin.password
@@ -111,7 +109,7 @@ _Docker Bearer Token Realm 활성화_
 
 위 예시에서 Registry는 `127.0.0.1:8082`에만 열려 있다. Docker Engine은 loopback 주소를 기본적으로 insecure registry로 취급하므로, 같은 호스트에서는 `localhost:8082`로 진행할 수 있다.
 
-다른 호스트의 HTTP Registry를 사용한다면 **이미지를 받거나 보내는 Docker daemon**에 해당 `host:port`를 명시해야 한다. 브라우저나 Nexus 컨테이너 안에서 설정하는 항목이 아니다. [Docker daemon의 insecure registry 설명](https://docs.docker.com/reference/cli/dockerd/#insecure-registries)
+다른 호스트의 HTTP Registry를 사용한다면 브라우저나 Nexus 컨테이너가 아니라 [Docker daemon의 insecure registry 설명](https://docs.docker.com/reference/cli/dockerd/#insecure-registries)대로 **이미지를 받거나 보내는 Docker daemon**에 해당 `host:port`를 명시해야 한다.
 
 공유 서버의 `/etc/docker/daemon.json`을 예시 JSON으로 통째로 덮어쓰지 않는다. 필요한 키를 기존 설정과 병합하고 JSON 구문과 daemon 옵션을 검사한 뒤, 실행 중인 컨테이너에 미칠 영향을 고려해 재시작한다.
 
@@ -120,9 +118,9 @@ _Docker Bearer Token Realm 활성화_
 sudo dockerd --validate --config-file=/etc/docker/daemon.json
 ```
 
-운영에서는 Registry 전용 도메인과 신뢰할 수 있는 TLS 인증서를 준비하고, 리버스 프록시 또는 Nexus HTTPS connector를 통해 제공한다. UI 포트 8081과 Registry connector 포트 8082를 혼동하지 않도록 한다. private CA를 사용한다면 Docker daemon이 그 CA를 신뢰하도록 설정하며 TLS 검증을 꺼서 해결하지 않는다. [Sonatype의 reverse proxy 구성 방식](https://help.sonatype.com/en/docker-repository-reverse-proxy-strategies.html)
+운영에서는 Registry 전용 도메인과 신뢰할 수 있는 TLS 인증서를 준비하고, [Sonatype의 reverse proxy 구성 방식](https://help.sonatype.com/en/docker-repository-reverse-proxy-strategies.html)에 맞춰 리버스 프록시 또는 Nexus HTTPS connector로 제공한다. UI 포트 8081과 Registry connector 포트 8082를 혼동하지 말고, private CA를 쓴다면 TLS 검증을 끄는 대신 Docker daemon이 그 CA를 신뢰하도록 설정해야 한다.
 
-원격에 공개할 때는 프록시 upstream과 방화벽도 조정해야 한다. 예시의 loopback 바인딩은 다른 호스트에서 직접 연결할 수 없도록 의도한 설정이다.
+원격에 공개할 때는 프록시 upstream과 방화벽도 조정해야 한다(위 예시는 로컬 테스트용으로 loopback 주소에만 바인딩했다).
 
 ---
 
@@ -174,7 +172,7 @@ _Nexus에 업로드된 이미지 확인_
 6. 로컬 HTTP 실습 또는 원격 TLS 구성
 7. digest와 권한을 포함한 push/pull 검증
 
-실제 운영에서는 DB와 Blob Store를 일관된 시점으로 복원할 수 있도록 사용하는 버전의 백업 절차를 따른다. 볼륨이 있다고 해서 백업까지 보장되지는 않는다.
+실제 운영에서는 DB와 Blob Store를 일관된 시점으로 복원할 수 있도록 사용하는 버전의 백업 절차도 챙겨야 한다. 볼륨을 마운트해 두었다고 백업까지 자동으로 되지는 않는다.
 
 Cleanup Policy를 적용하기 전에는 배포 중이거나 롤백에 필요한 이미지가 삭제되지 않도록 보존 기준을 정하고, 실제 용량 회수에 필요한 작업도 해당 버전 문서에서 확인한다.
 
@@ -185,6 +183,5 @@ Cleanup Policy를 적용하기 전에는 배포 중이거나 롤백에 필요한
 - [Sonatype: Nexus 공식 Docker 이미지](https://github.com/sonatype/docker-nexus3)
 - [Sonatype: Repository Connector 설정](https://help.sonatype.com/en/configurable-repository-fields.html)
 - [Sonatype: Docker Repository 그룹](https://help.sonatype.com/en/grouping-docker-repositories.html)
-
 - [Sonatype: Docker 인증과 Realm](https://help.sonatype.com/en/docker-authentication.html)
 - [Docker: daemon 설정 검증](https://docs.docker.com/reference/cli/dockerd/#daemon-configuration-file)

@@ -27,7 +27,7 @@ Argo CD 서버에 HTTPS를 연결한 뒤 브라우저에서 `ERR_TOO_MANY_REDIRE
 
 ## 변경 전에 redirect를 만드는 위치 확인하기
 
-먼저 실제 응답 헤더를 확인한다. 아래 도메인은 예시이므로 자신의 주소로 바꿔 실행한다.
+먼저 실제 응답 헤더를 확인한다(도메인은 자기 주소에 맞게 바꾸어 실행한다).
 
 ```bash
 curl -sS -D - -o /dev/null https://argocd.example.com
@@ -39,7 +39,7 @@ curl -sS -D - -o /dev/null https://argocd.example.com
 curl -sS -L --max-redirs 5 -D - -o /dev/null https://argocd.example.com
 ```
 
-같은 HTTPS 주소가 반복된다는 사실은 루프의 증거지만, 이것만으로 Argo CD가 원인이라고 확정할 수는 없다. Ingress·앞단 프록시가 별도 redirect를 만들거나 인증 경로가 반복되는 경우도 있기 때문이다. 다음 세 가지를 함께 확인한다.
+같은 HTTPS 주소가 반복되더라도 Ingress나 앞단 프록시가 별도 redirect를 만들거나 인증 경로가 돌고 있을 수 있으니, 다음 세 가지를 함께 짚어 본다.
 
 1. Ingress가 외부 TLS를 종료하는지, TLS passthrough인지 확인한다.
 2. Ingress의 upstream 프로토콜과 Service가 가리키는 포트를 확인한다.
@@ -50,16 +50,16 @@ curl -sS -L --max-redirs 5 -D - -o /dev/null https://argocd.example.com
 ## 해결 방법: TLS 종료 위치에 맞춰 선택하기
 
 | 유지하려는 구성 | argocd-server 설정 | 함께 맞출 것 |
-|:---|:---|:---|
+| :--- | :--- | :--- |
 | Ingress에서 TLS 종료, 내부 HTTP | 서버 TLS 비활성화 | Ingress upstream도 HTTP로 설정 |
 | Ingress에서 TLS 종료 후 내부 HTTPS 재연결 | 서버 TLS 유지 | upstream HTTPS, 백엔드 인증서 신뢰 설정 |
 | TLS passthrough | 서버 TLS 유지 | Controller의 passthrough 지원·설정, 서버 인증서 |
 
-Controller마다 HTTP·gRPC 처리와 annotation이 다르다. 특히 Argo CD의 웹 UI가 열린다고 CLI의 gRPC 연결도 정상이라고 결론 내릴 수는 없다. 자신이 사용하는 Controller에 맞는 [공식 Ingress 예제](https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/)를 적용해야 한다.
+Controller마다 HTTP·gRPC 처리와 annotation이 다르므로 웹 UI가 열린다고 CLI의 gRPC 연결까지 정상이라고 보기는 어렵다. 사용 중인 Controller에 맞는 [공식 Ingress 예제](https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/)를 기준으로 맞추어야 한다.
 
 ### 당시 구성: Ingress TLS 종료 + 내부 HTTP
 
-기존 argocd-server 컨테이너 실행 명령에 `--insecure`를 추가했다. 아래는 해당 부분만 나타낸 예시이며 Deployment 전체를 대체하는 YAML이 아니다. 기존 인수도 유지해야 한다.
+기존 argocd-server 컨테이너 실행 명령에 `--insecure`를 추가해 해결했다(실제 적용 시에는 기존 인수들을 유지한 채 해당 플래그만 넣는다).
 
 ```yaml
 containers:
@@ -69,7 +69,7 @@ containers:
       - --insecure
 ```
 
-기본 설치 매니페스트처럼 `argocd-cmd-params-cm`을 읽는 구성이라면 ConfigMap의 `server.insecure`로 설정할 수도 있다. 두 방법 중 실제 배포를 관리하는 방식에 맞는 하나를 사용한다. [공식 ConfigMap 설정](https://argo-cd.readthedocs.io/en/stable/operator-manual/argocd-cmd-params-cm-yaml/)
+기본 설치 매니페스트처럼 `argocd-cmd-params-cm`을 읽는 구성이라면 [공식 ConfigMap 설정](https://argo-cd.readthedocs.io/en/stable/operator-manual/argocd-cmd-params-cm-yaml/)처럼 `server.insecure`로 지정할 수도 있다. 실제 배포를 관리하는 방식에 맞춰 하나를 택하면 된다.
 
 ```bash
 kubectl -n argocd patch configmap argocd-cmd-params-cm \
@@ -88,7 +88,7 @@ Helm이나 GitOps로 설치했다면 실제 values 또는 Git의 매니페스트
 
 ## 정상화는 화면 표시까지 확인하기
 
-적용 뒤에는 rollout 완료를 확인하고 위 `curl` 요청을 다시 실행한다. TLS redirect가 무한히 반복되지 않아야 한다. 첫 응답이 꼭 200이어야 하는 것은 아니며, 로그인 등 의도한 경로로 한 번 이동할 수 있다.
+적용 뒤에는 rollout 완료를 확인하고 위 `curl` 요청을 다시 실행한다. TLS redirect가 무한히 반복되지 않고 로그인 화면 등 의도한 경로로 넘어가면 정상이다.
 
 그다음 브라우저에서 로그인과 실제 화면 조회를 확인한다. CLI도 사용하는 환경이면 CLI 연결을 따로 확인한다. redirect는 사라졌는데 502가 생겼다면 Ingress upstream 프로토콜과 서버 TLS 설정이 엇갈렸는지 먼저 살펴본다.
 

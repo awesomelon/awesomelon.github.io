@@ -6,14 +6,14 @@ categories: [ENGINEERING, CI/CD]
 tags: [drone, ci/cd, bitbucket, docker, pipeline]
 author: j-ho
 img_path: /assets/img/for_post/
-description: Docker 기반 CI 플랫폼 Drone CI를 Bitbucket과 연동해 파이프라인을 구성한 과정을 정리합니다.
+description: Docker 기반 CI 플랫폼 Drone CI를 Bitbucket과 연동해 파이프라인을 구성한 과정을 정리했다.
 ---
 
-Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 있고 YAML 파일로 파이프라인을 구성할 수 있다. 이 글에서는 Server와 Docker Runner를 컨테이너로 배포하고 각 파이프라인 단계도 컨테이너에서 실행한다. Drone에는 Exec·SSH 등 다른 Runner도 있으므로 모든 파이프라인이 Docker에서 실행되지는 않는다.
+Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 있고 YAML 파일로 파이프라인을 구성할 수 있다. 이 글에서는 Server와 Docker Runner를 컨테이너로 배포하고 각 파이프라인 단계도 컨테이너에서 실행하는 방식을 다룬다(환경에 따라 Exec나 SSH 등 다른 Runner도 쓸 수 있다).
 
 ---
 
-> 아래 화면은 2023년 연동 당시의 기록입니다. 설치 예시는 Drone Server 2 계열, Docker Runner 1 계열, Docker Compose v2 명령을 기준으로 정리했습니다. Bitbucket Cloud용 설정이며 Bitbucket Data Center/Server에는 별도 provider 설정이 필요합니다.
+> 아래 화면은 2023년 연동 당시의 기록이고, 설치 예시는 Drone Server 2 계열, Docker Runner 1 계열, Docker Compose v2 명령을 기준으로 정리했다. Bitbucket Cloud용 설정이므로 Bitbucket Data Center나 Server를 쓴다면 별도 provider 설정이 필요하다.
 {: .prompt-info }
 
 ## Drone 아키텍처
@@ -26,7 +26,7 @@ Drone CI는 Harness에서 제공하는 CI 플랫폼으로, Go로 작성되어 �
 
 ## Bitbucket 연동 설정
 
-연동하려면 Bitbucket OAuth Consumer의 Key와 Secret이 필요하다. 먼저 `https://drone.example.com`처럼 고정된 외부 주소와 TLS 인증서를 준비한다. Bitbucket Cloud가 webhook을 보낼 수 있어야 하므로 VPN 안에서 브라우저로 열리는 것만으로는 충분하지 않다. [Drone의 Bitbucket Cloud 설정](https://docs.drone.io/server/provider/bitbucket-cloud/)
+연동하려면 Bitbucket OAuth Consumer의 Key와 Secret이 필요하다. [Drone의 Bitbucket Cloud 설정](https://docs.drone.io/server/provider/bitbucket-cloud/)대로 먼저 `https://drone.example.com`처럼 고정된 외부 주소와 TLS 인증서를 준비해야 한다. Bitbucket Cloud가 webhook을 보낼 수 있어야 하므로 VPN 안에서 브라우저로 열리는 것만으로는 충분하지 않다.
 
 OAuth Consumer의 저장소 조회·webhook 등록 권한은 공식 provider 안내에 맞춰 설정하고, Drone에 허용할 사용자·조직 범위도 함께 정한다. 이미지를 빌드할 수 있는 CI 서버를 누구나 사용하도록 열어두어서는 안 된다.
 
@@ -102,9 +102,9 @@ DRONE_BITBUCKET_CLIENT_SECRET=REPLACE_WITH_OAUTH_SECRET
 DRONE_RPC_SECRET=REPLACE_WITH_GENERATED_SECRET
 ```
 
-`DRONE_USER_FILTER`에는 허용할 Bitbucket 계정을 쉼표로 구분해 넣고 허용되지 않은 계정으로는 등록할 수 없는지 확인한다. [등록 허용 목록 설정](https://docs.drone.io/server/reference/drone-user-filter/)
+`DRONE_USER_FILTER`에는 [등록 허용 목록 설정](https://docs.drone.io/server/reference/drone-user-filter/)에 따라 허용할 Bitbucket 계정을 쉼표로 구분해 넣고, 허용되지 않은 계정으로는 등록할 수 없는지 확인한다.
 
-`:2`와 `:1`은 공식 설치 문서에서 제시하는 계열 태그이며 고정 버전은 아니다. 연결 검증 후 운영 설정에는 검토한 정확한 태그 또는 digest를 기록한다. `.env`는 Git에서 제외하고 접근 권한을 제한한다. `docker compose config`는 해석된 secret까지 출력할 수 있으므로 여기서는 출력 없는 `--quiet` 검사를 사용한다.
+`:2`와 `:1`은 공식 설치 문서에서 제시하는 계열 태그이므로 연결을 확인한 뒤 운영 설정에서는 구체적인 버전 태그나 digest로 고정하는 편이 좋다. `.env`는 Git에서 제외하고 접근 권한을 제한한다. `docker compose config`는 해석된 secret까지 출력할 수 있으므로 여기서는 출력 없는 `--quiet` 검사를 사용한다.
 
 ```bash
 chmod 600 .env
@@ -118,7 +118,7 @@ Runner 로그에 Server 연결 성공이 나타나는지 확인한다. `DRONE_SE
 
 리버스 프록시도 컨테이너라면 그 컨테이너에서 `127.0.0.1`은 Drone 호스트가 아니다. 공통 Docker 네트워크의 `server:80`으로 전달하는 등 네트워크 구성을 맞춰야 한다. Runner를 다른 호스트로 옮길 때도 내부 서비스명이 사라지므로 RPC 주소와 TLS 설정을 함께 변경한다.
 
-> Docker socket을 마운트한 Runner는 호스트 Docker를 제어합니다. CI 전용 호스트를 사용하고 신뢰하지 않는 파이프라인에 호스트 볼륨·privileged 실행을 허용하지 않습니다. Runner 관리용 포트 3000은 일반 파이프라인 실행에 필요하지 않아 외부에 공개하지 않았습니다. [Docker Engine 보안](https://docs.docker.com/engine/security/)
+> Docker socket을 마운트한 Runner는 호스트 Docker를 제어하므로 CI 전용 호스트에서 운용하고, 신뢰하지 않는 파이프라인에 호스트 볼륨·privileged 실행을 허용하지 않아야 한다. Runner 관리용 포트 3000은 일반 파이프라인 실행에 필요하지 않아 외부에 공개하지 않았다([Docker Engine 보안](https://docs.docker.com/engine/security/)).
 {: .prompt-warning }
 
 ---
@@ -139,7 +139,7 @@ _Bitbucket에 자동 등록된 Drone Webhook_
 
 ## 파이프라인 작성
 
-프로젝트 root에 `.drone.yml` 파일을 생성한다. 아래는 배포가 아니라 저장소 이벤트와 Runner 연결을 확인하는 최소 파이프라인이다. 예시의 Alpine 계열은 2026년 기준이며, 실제 프로젝트에서는 빌드 도구에 맞는 이미지를 사용한다.
+프로젝트 root에 `.drone.yml` 파일을 생성한다. 아래는 저장소 이벤트와 Runner 연결만 확인하는 최소 파이프라인이며(Alpine 버전은 작성 시점 기준 예시), 실제 프로젝트에서는 빌드 도구에 맞는 이미지를 쓰면 된다.
 
 ```yaml
 ---
@@ -179,7 +179,7 @@ _파이프라인 실행 상세 로그_
 | 실행 항목이 Pending에 머무름 | Runner 로그의 RPC 연결, 공유 비밀, Runner 용량·조건 |
 | 작업은 시작되지만 clone·pull 실패 | Runner의 Git·이미지 레지스트리 접근과 인증 |
 
-운영 파이프라인을 추가할 때는 빌드 성공만 확인하지 않고, 실패하도록 만든 작업 뒤에 오는 배포 단계가 실행되지 않는지도 확인한다. 배포 secret은 필요한 저장소에만 등록하고 PR의 비신뢰 코드에 노출하지 않는다. 배포 조건은 `main` 같은 branch와 `push` 같은 event를 함께 제한해야 PR 빌드에서 배포 단계가 실행되는 일을 피할 수 있다. [Drone trigger 규칙](https://docs.drone.io/pipeline/docker/syntax/trigger/)
+운영 파이프라인을 추가할 때는 빌드 성공만 확인하지 않고, 실패하도록 만든 작업 뒤에 오는 배포 단계가 실행되지 않는지도 확인한다. 배포 secret은 필요한 저장소에만 등록하고 PR의 비신뢰 코드에 노출하지 않는다. 또한 [Drone trigger 규칙](https://docs.drone.io/pipeline/docker/syntax/trigger/)에 맞춰 `main` 같은 branch와 `push` 같은 event를 함께 제한해야 PR 빌드에서 배포 단계가 도는 일을 피할 수 있다.
 
 ## 정리
 
@@ -193,6 +193,5 @@ _파이프라인 실행 상세 로그_
 - [Drone 공식 문서](https://docs.drone.io)
 - [Bitbucket Cloud Provider](https://docs.drone.io/server/provider/bitbucket-cloud/)
 - [Drone Docker Runner 설치](https://docs.drone.io/runner/docker/installation/linux/)
-
 - [Docker: Compose 변수 보간과 필수 값](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/)
 - [Alpine: 지원 릴리스 계열](https://www.alpinelinux.org/releases/)
